@@ -1,0 +1,788 @@
+import datetime
+import time
+import random
+from random import randint
+from sys import exit
+
+import config
+from stats import MultipleChoices
+from stats import Reload
+
+
+class ZombieBattle(object):
+
+
+	def determine_whether_battle_should_occur(self):
+		if config.number_of_monsters == 0:
+			Results().end_fight_if_no_monsters()
+		else:
+			ZombieBattle().determine_fight_or_dodge()
+			
+	def determine_fight_or_dodge(self):
+		if config.number_of_monsters > 1:
+			print '''
+	Do you choose to fight the monsters or dodge?
+	Note that if you fight with a handgun, you can only use 
+	handgun bullets that are in your item cache.
+	1. Fight
+	2. Dodge
+	'''
+		else:
+			print '''
+	Do you choose to fight the monster or dodge?
+	Note that if you fight with a handgun, you can only use 
+	handgun bullets that are in your item cache.
+	1. Fight
+	2. Dodge
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			print '''
+	You chose to fight.
+	'''
+			Weapon().choose_weapon()		
+		else:
+			print '''
+	You have chosen to dodge.
+	'''
+			RunAway().dodge()
+		
+				
+class Weapon(object):
+
+
+	def choose_weapon(self):
+		if ('bowgun' in config.item_cache or 'bowgun 2' in 
+		        config.item_cache) and ('handgun' in 
+				config.item_cache):
+			Weapon().choose_bowgun_or_handgun()
+			Fight().fight_monsters()
+		elif ('bowgun' in config.item_cache or 'bowgun 2' in 
+		        config.item_cache) and ('handgun' not in 
+			    config.item_cache):
+			print '''
+	You will fight with your bowgun.
+	'''
+			config.handgun_equipped = False
+			Weapon().pick_which_bowgun()
+			Fight().fight_monsters()
+		elif ('handgun' in config.item_cache and 'bowgun' not in 
+		        config.item_cache and 'bowgun 2' not in 
+				config.item_cache):
+			print '''
+	You will fight with your handgun.
+	'''
+			config.handgun_equipped = True
+			Fight().fight_monsters()
+		else:
+			print '''
+	You have no weapons in your item cache. You must run from the 
+	monsters.
+	'''
+			RunAway().dodge()
+			
+	def choose_bowgun_or_handgun(self):
+		print'''
+	What weapon will you choose?
+	1. Hand Gun
+	2. Bowgun
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			print '''
+	You choose to fight with a handgun.
+	'''
+			config.handgun_equipped = True
+		else:
+			print '''
+	You choose to fight with a bowgun.
+	'''
+			config.handgun_equipped = False
+			Weapon().pick_which_bowgun()
+			
+	def pick_which_bowgun(self):
+		if ('bowgun' in config.item_cache and 'bowgun 2' not in 
+		        config.item_cache):
+			config.bowgun_equipped = 1
+		elif ('bowgun 2' in config.item_cache and 'bowgun' not in 
+		        config.item_cache):
+			config.bowgun_equipped = 2
+		elif ('bowgun' in config.item_cache and 'bowgun 2' in 
+		        config.item_cache):
+			config.both_bowguns = True
+			print '''
+	Which bowgun will you fight with? (Note that you can switch 
+	bowguns if you run out of ammo.)
+	
+	Bowgun 1 has %d bowgun bolts.
+	Bowgun 2 has %d bowgun bolts.
+	
+	1. Bowgun 1 (Joe Kendo bowgun)
+	2. Bowgun 2 (Rebecca's locker)
+	''' % (config.bowgun_bolts, config.bowgun_bolts_2)
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				config.bowgun_equipped = 1
+			else:
+				config.bowgun_equipped = 2
+	
+				
+class Fight(object):
+
+
+	def fight_monsters(self):
+		print '''
+	Shoot the monsters by following the instructions on the screen 
+	very carefully. Shoot them quickly or they will reach you and 
+	you will take damage.
+	'''
+		raw_input('Press enter to keep playing.   ')
+		config.a = datetime.datetime.now()
+		config.counter = 0
+		while config.counter < config.total_monster_health:
+			if config.handgun_equipped:
+				if config.total_cache_bullets < 3:
+					print '''
+	You do not have enough handgun bullets to fight the monsters.
+	'''
+					break
+			else:
+				if config.bowgun_equipped == 1:
+					if config.bowgun_bolts < 1:
+						print '''
+	You do not have enough bowgun bolts to fight these monsters.
+	'''
+						if config.both_bowguns:
+							print '''
+	Do you want to switch bowguns?
+	1. Yes
+	2. No
+	'''
+							MultipleChoices().two_choices()
+							if config.choice == '1':
+								config.bowgun_equipped = 2
+							else:
+								break
+						else:
+							break
+					else:
+						pass
+				else:
+					if config.bowgun_bolts_2 < 1:
+						print '''
+	You do not have enough bowgun bolts to fight these monsters.
+	'''
+						if config.both_bowguns:
+							print '''
+	Do you want to switch bowguns?
+	1. Yes
+	2. No
+	'''
+							MultipleChoices().two_choices()
+							if config.choice == '1':
+								config.bowgun_equipped = 1
+							else:
+								break
+						else:
+							break
+					else:
+						pass
+			print '''
+	To attack, press a three times as fast as you can, then press
+	enter. To stop shooting monsters, type exit (all lowercase and 
+	do not include a period).
+	'''
+			config.choice1 = raw_input('   ')
+			if config.choice1 == 'aaa':
+				if config.handgun_equipped:
+					config.counter = config.counter + 3
+					config.total_cache_bullets = (
+					    config.total_cache_bullets - 3
+						)
+				else:
+					if config.bowgun_equipped == 1:
+						if config.bowgun_bolts > 2:
+							config.counter = config.counter + 9
+							config.bowgun_bolts = config.bowgun_bolts - 3
+						else:
+							if config.bowgun_bolts == 2:
+								config.counter = config.counter + 6
+								config.bowgun_bolts = 0
+							else:
+								config.counter = config.counter + 3
+								config.bowgun_bolts = 0
+					else:
+						if config.bowgun_bolts_2 > 2:
+							config.counter = config.counter + 9
+							config.bowgun_bolts_2 = (
+							    config.bowgun_bolts_2 - 3
+								)
+						else:
+							if config.bowgun_bolts_2 == 2:
+								config.counter = config.counter + 6
+								config.bowgun_bolts_2 = 0
+							else:
+								config.counter = config.counter + 3
+								config.bowgun_bolts_2 = 0
+			elif config.choice1 == 'exit':
+				break
+			else:
+				config.bullets_used = len(config.choice1)
+				if config.bullets_used > 3:
+					config.bullets_used = 3
+				else:
+					pass
+				if config.handgun_equipped:
+					config.total_cache_bullets = (
+					    config.total_cache_bullets - config.bullets_used
+						)
+				else:
+					if config.bowgun_equipped == 1:
+						config.bowgun_bolts = (config.bowgun_bolts - 
+				                               config.bullets_used)
+					else:
+						config.bowgun_bolts_2 = (config.bowgun_bolts_2 - 
+				                                 config.bullets_used)
+			if config.counter >= (config.total_monster_health):
+				break
+			if config.handgun_equipped:
+				if config.total_cache_bullets < 3:
+					print '''
+	You do not have enough handgun bullets to fight the monsters.
+	'''
+					break
+			else:
+				if config.bowgun_equipped == 1:
+					if config.bowgun_bolts < 1:
+						print '''
+	You do not have enough bowgun bolts to fight these monsters.
+	'''
+						if config.both_bowguns:
+							print '''
+	Do you want to switch bowguns?
+	1. Yes
+	2. No
+	'''
+							MultipleChoices().two_choices()
+							if config.choice == '1':
+								config.bowgun_equipped = 2
+							else:
+								break
+						else:
+							break
+					else:
+						pass
+				else:
+					if config.bowgun_bolts_2 < 1:
+						print '''
+	You do not have enough bowgun bolts to fight these monsters.
+	'''
+						if config.both_bowguns:
+							print '''
+	Do you want to switch bowguns?
+	1. Yes
+	2. No
+	'''
+							MultipleChoices().two_choices()
+							if config.choice == '1':
+								config.bowgun_equipped = 1
+							else:
+								break
+						else:
+							break
+					else:
+						pass
+			print '''
+	To attack, press b three times as fast as you can, then press
+	enter. To stop shooting monsters, type exit (all lowercase and 
+	do not include a period).
+	'''
+			config.choice2 = raw_input('  ')
+			if config.choice2 == 'bbb':
+				if config.handgun_equipped:
+					config.counter = config.counter + 3
+					config.total_cache_bullets = (
+					    config.total_cache_bullets - 3
+						)
+				else:
+					if config.bowgun_equipped == 1:
+						if config.bowgun_bolts > 2:
+							config.counter = config.counter + 9
+							config.bowgun_bolts = config.bowgun_bolts - 3
+						else:
+							if config.bowgun_bolts == 2:
+								config.counter = config.counter + 6
+								config.bowgun_bolts = 0
+							else:
+								config.counter = config.counter + 3
+								config.bowgun_bolts = 0
+					else:
+						if config.bowgun_bolts_2 > 2:
+							config.counter = config.counter + 9
+							config.bowgun_bolts_2 = (
+							    config.bowgun_bolts_2 - 3
+								)
+						else:
+							if config.bowgun_bolts_2 == 2:
+								config.counter = config.counter + 6
+								config.bowgun_bolts_2 = 0
+							else:
+								config.counter = config.counter + 3
+								config.bowgun_bolts_2 = 0
+			elif config.choice2 == 'exit':
+				break
+			else:
+				config.bullets_used = len(config.choice2)
+				if config.bullets_used > 3:
+					config.bullets_used = 3
+				else:
+					pass
+				if config.handgun_equipped:
+					config.total_cache_bullets = (
+					    config.total_cache_bullets - config.bullets_used
+						)
+				else:
+					if config.bowgun_equipped == 1:
+						config.bowgun_bolts = (config.bowgun_bolts - 
+				                               config.bullets_used)
+					else:
+						config.bowgun_bolts_2 = (config.bowgun_bolts_2 - 
+				                                 config.bullets_used)
+			if config.counter >= (config.total_monster_health):
+				break
+			if config.handgun_equipped:
+				if config.total_cache_bullets < 3:
+					print '''
+	You do not have enough handgun bullets to fight the monsters.
+	'''
+					break
+			else:
+				if config.bowgun_equipped == 1:
+					if config.bowgun_bolts < 1:
+						print '''
+	You do not have enough bowgun bolts to fight these monsters.
+	'''
+						if config.both_bowguns:
+							print '''
+	Do you want to switch bowguns?
+	1. Yes
+	2. No
+	'''
+							MultipleChoices().two_choices()
+							if config.choice == '1':
+								config.bowgun_equipped = 2
+							else:
+								break
+						else:
+							break
+					else:
+						pass
+				else:
+					if config.bowgun_bolts_2 < 1:
+						print '''
+	You do not have enough bowgun bolts to fight these monsters.
+	'''
+						if config.both_bowguns:
+							print '''
+	Do you want to switch bowguns?
+	1. Yes
+	2. No
+	'''
+							MultipleChoices().two_choices()
+							if config.choice == '1':
+								config.bowgun_equipped = 1
+							else:
+								break
+						else:
+							break
+					else:
+						pass
+			print '''
+	To attack, press c three times as fast as you can. Then press 
+	enter. To stop shooting monsters, type exit (all lowercase and 
+	do not include a period.)
+	'''
+			config.choice3= raw_input('   ')
+			if config.choice3 == 'ccc':
+				if config.handgun_equipped:
+					config.counter = config.counter + 3
+					config.total_cache_bullets = (
+					    config.total_cache_bullets - 3
+						)
+				else:
+					if config.bowgun_equipped == 1:
+						if config.bowgun_bolts > 2:
+							config.counter = config.counter + 9
+							config.bowgun_bolts = config.bowgun_bolts - 3
+						else:
+							if config.bowgun_bolts == 2:
+								config.counter = config.counter + 6
+								config.bowgun_bolts = 0
+							else:
+								config.counter = config.counter + 3
+								config.bowgun_bolts = 0
+					else:
+						if config.bowgun_bolts_2 > 2:
+							config.counter = config.counter + 9
+							config.bowgun_bolts_2 = (
+							    config.bowgun_bolts_2 - 3
+								)
+						else:
+							if config.bowgun_bolts_2 == 2:
+								config.counter = config.counter + 6
+								config.bowgun_bolts_2 = 0
+							else:
+								config.counter = config.counter + 3
+								config.bowgun_bolts_2 = 0
+			elif config.choice3 == 'exit':
+				break
+			else:
+				config.bullets_used = len(config.choice3)
+				if config.bullets_used > 3:
+					config.bullets_used = 3
+				else:
+					pass
+				if config.handgun_equipped:
+					config.total_cache_bullets = (
+					    config.total_cache_bullets - config.bullets_used
+						)
+				else:
+					if config.bowgun_equipped == 1:
+						config.bowgun_bolts = (config.bowgun_bolts - 
+				                               config.bullets_used)
+					else:
+						config.bowgun_bolts_2 = (config.bowgun_bolts_2 - 
+				                                 config.bullets_used)
+			if config.counter >= (config.total_monster_health):
+				break	
+		config.b = datetime.datetime.now()
+		Fight().calculate_health()
+			
+	def calculate_health(self):
+		if config.b < (config.a + 
+		        datetime.timedelta(seconds=config.shoot_time)):
+			config.health = config.health - 0
+		elif (not config.monster_is_zombie and config.b > 
+			    (config.a + datetime.timedelta(seconds=config.shoot_time)) and 
+				config.b < (config.a + 
+				datetime.timedelta(seconds=(2 * config.shoot_time)))):
+			Fight().deduct_20_or_25_health()
+		elif (not config.monster_is_zombie and config.b > 
+		       (config.a + datetime.timedelta(seconds=(2 * 
+			   config.shoot_time)))):
+			Fight().deduct_40_or_50_health()
+		else:
+			Fight().deduct_7_or_10_health()
+		Fight().calculate_monster_health()
+			
+	def deduct_20_or_25_health(self):
+		if config.number_of_monsters > 1:
+			print '''
+	You did not shoot the lickers in time and took a hit. Oh no!
+	'''
+		else:
+			print '''
+	You did not shoot the licker in time and took a hit. Oh no!
+	'''
+		if config.character == '1':
+			config.health = config.health - 20
+		else:
+			config.health = config.health - 25
+			
+	def deduct_40_or_50_health(self):
+		if config.number_of_monsters > 1:
+			print '''
+	You did not shoot the lickers in time and took two hits. Oh no!
+	'''
+		else:
+			print '''
+	You did not shoot the licker in time and took two hits. Oh no!
+	'''
+		if config.character == '1':
+			config.health = config.health - 40
+		else:
+			config.health = config.health - 50
+
+	def deduct_7_or_10_health(self):
+		print '''
+	You did not shoot the zombies in time and took a bite. Oh no!
+	'''
+		if config.character == '2':
+			config.health = config.health - 10
+		else:
+			config.health = config.health - 7
+			
+	def calculate_monster_health(self):	
+		config.total_monster_health = (config.total_monster_health - 
+		                              config.counter)
+		if config.total_monster_health < 0:
+			config.total_monster_health = 0
+		else:
+			pass
+		if config.monster_is_zombie:
+			Fight().calculate_number_of_zombies()
+		else:
+			Fight().calculate_number_of_lickers()
+		Fight().start_dodge_mode()
+			
+	def calculate_number_of_zombies(self):
+		if (config.total_monster_health > 0 and 
+				config.total_monster_health < 10):
+			config.number_of_monsters = 1
+		elif (config.total_monster_health > 9 and 
+		        config.total_monster_health < 19):
+			config.number_of_monsters = 2
+		elif (config.total_monster_health > 18 and 
+		        config.total_monster_health < 28):
+			config.number_of_monsters = 3
+		elif (config.total_monster_health > 27 and 
+		        config.total_monster_health < 37):
+			config.number_of_monsters = 4
+		elif (config.total_monster_health > 36 and 
+		        config.total_monster_health < 46):
+			config.number_of_monsters = 5
+		elif config.total_monster_health == 0:
+			config.number_of_monsters = 0
+		else:
+			pass
+		
+	def calculate_number_of_lickers(self):
+		if (config.total_monster_health > 0 and 
+		        config.total_monster_health < 28):
+			config.number_of_monsters = 1
+		elif (config.total_monster_health > 27 and 
+		        config.total_monster_health < 55):
+			config.number_of_monsters = 2
+		else:
+			config.number_of_monsters = 0
+		
+	def start_dodge_mode(self):
+		if config.total_monster_health > 0:
+			print '''
+	You did not kill all the monsters in this room. Thus, you still
+	have to dodge your way out of the room. However, you will have
+	more time to dodge based on the number of monsters you killed.
+	'''
+			monsters_killed = (config.original_number_of_monsters - 
+							   config.number_of_monsters)
+			if config.monster_is_zombie:
+				config.dodge_time = (config.dodge_time + 
+									2 * monsters_killed)
+			else:
+				config.dodge_time = (config.dodge_time + 
+				                    3 * monsters_killed)
+			RunAway().dodge()
+			
+		else:
+			Results().display_health_and_monster_health()
+											
+				
+class RunAway(object):
+
+
+	def dodge(self):
+		print '''
+	Copy the pattern exactly as it is as quickly as you can. If you 
+	take too long to get the pattern correct, you will take damage.
+	'''
+		patterns = [
+	        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
+			'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
+			'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 
+			'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
+			'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+			]			
+		config.code1 = random.choice(patterns)
+		config.code2 = randint(0, 9)
+		config.code3 = random.choice(patterns)
+		config.code4 = randint(0, 9)
+		config.code5 = random.choice(patterns)
+		config.code6 = randint(0, 9)
+		config.code7 = random.choice(patterns)
+		config.code8 = randint(0, 9)
+		config.code9 = random.choice(patterns)
+		config.code10 = randint(0, 9)
+		config.code11 = random.choice(patterns)
+		config.code12 = randint(0, 9)
+		RunAway().determine_how_long_code_is()
+		
+	def determine_how_long_code_is(self):				
+		if config.character == '2':
+			config.dodge = '%s%d%s%d%s%d%s%d' % (
+			    config.code1, config.code2, config.code3, config.code4, 
+				config.code5, config.code6, config.code7, config.code8
+				)
+		else:
+			config.dodge = '%s%d%s%d%s%d%s%d%s%d%s%d' % (
+			    config.code1, config.code2, config.code3, config.code4, 
+		        config.code5, config.code6, config.code7, config.code8, 
+				config.code9, config.code10, config.code11, config.code12
+				)
+		RunAway().return_the_code_prompt_user_to_enter_code()
+		
+	def return_the_code_prompt_user_to_enter_code(self):
+		ability = 0
+		raw_input('Press enter to continue playing.   ')
+		print config.dodge
+		config.c = datetime.datetime.now()
+		while config.dodge != ability:
+			ability = raw_input('Copy the message exactly as it is.   ')
+		config.d = datetime.datetime.now()
+		RunAway().determine_whether_monster_is_zombie()
+		
+	def determine_whether_monster_is_zombie(self):
+		if config.monster_is_zombie:
+			RunAway().determine_health_zombie_bite()
+		else:
+			RunAway().determine_health_licker_bite()	
+		Results().display_health_and_monster_health()
+		
+	def determine_health_zombie_bite(self):
+		if (config.d > config.c + 
+		        datetime.timedelta(seconds=config.dodge_time)):
+			print '''
+	You did not dodge the zombies quick enough and took a bite. Oh no!
+	'''
+			if config.character == '2':
+				config.health = config.health - 10
+			else:
+				config.health = config.health - 7
+		else:
+			config.health = config.health - 0
+			
+	def determine_health_licker_bite(self):
+		if (config.d > config.c + 
+		        datetime.timedelta(seconds=config.dodge_time) and 
+				config.d < config.c + datetime.timedelta(seconds=(2 * 
+				config.dodge_time))):
+			RunAway().calculate_health_for_one_licker_bite()	
+		elif (config.d > config.c + 
+		        datetime.timedelta(seconds =(2 * config.dodge_time))):
+			RunAway().calculate_health_for_two_licker_bites()	
+		else:
+			config.health = config.health - 0
+				
+	def calculate_health_for_one_licker_bite(self):
+		if config.number_of_monsters > 1:
+			print '''
+	You did not dodge the lickers in time and took a hit. Oh no!
+	'''
+		else:
+			print '''
+	You did not dodge the licker in time and too a hit. Oh no!
+	'''
+			if config.character == '2':
+				config.health = config.health - 25
+			else:
+				config.health = config.health - 20
+					
+	def calculate_health_for_two_licker_bites(self):
+		if config.number_of_monsters > 1:
+			print '''
+	You did not dodge the lickers in time and took two hits. Oh no!
+	'''
+		else:
+			print '''
+	You did not dodge the licker in time and took two hits. Oh no!
+	'''
+		if config.character == '2':
+			config.health = config.health - 50
+		else:
+			config.health = config.health - 40
+				
+			
+class Results(object):
+	
+	
+	def display_health_and_monster_health(self):
+		print '''
+	Your health is %r.
+	''' % config.health
+		print '''
+	The number of monsters remaining in this room are %r.
+	''' % config.number_of_monsters
+		print '''
+	The health of total monsters in this room is %r.
+	''' % (config.total_monster_health)
+		Results().determine_if_die()
+		
+	def determine_if_die(self):
+		if config.health < 1:
+			print '''
+	You have died.
+	'''
+			exit(0)
+		else:
+			Results().determine_handgun_choices()
+			
+	def determine_handgun_choices(self):
+		if 'handgun' in config.item_cache:
+			Results().calculate_handgun_bullets()
+		else:
+			Results().display_bullets_left()
+			
+	def calculate_handgun_bullets(self):
+		config.cache_bullets = (config.total_cache_bullets - 
+		                       config.gun_bullets)
+		if config.cache_bullets < 0:
+			config.cache_bullets = 0
+			config.gun_bullets = config.total_cache_bullets
+		else:
+			pass
+		config.handgun_bullets = (config.cache_bullets + 
+		                         config.gun_bullets + 
+								 config.box_bullets)
+		config.total_cache_bullets = (config.cache_bullets + 
+		                             config.gun_bullets)							 
+		if 'handgun bullets' in config.item_cache:
+			if config.cache_bullets == 0:
+				config.item_cache.remove('handgun bullets')
+			else:
+				pass
+		else:
+			pass
+		config.monster_combat = True
+		Reload().reload_gun()
+		config.monster_combat = False
+		Results().display_bullets_left() 
+										
+	def display_bullets_left(self):
+		print '''
+	You have %r handgun bullets remaining in your item cache.
+	''' % config.total_cache_bullets
+		print '''
+	You have %r handgun bullets remaining in total.
+	''' % config.handgun_bullets
+		#print '''
+	#shoot time is %r
+	#''' % config.shoot_time
+		#print '''
+	#dodge time is %r
+	#''' % config.dodge_time
+		Results().determine_if_bowgun_in_item_cache()
+		
+	def determine_if_bowgun_in_item_cache(self):
+		if ('bowgun' in config.item_cache and 
+		   'bowgun 2' not in config.item_cache):
+			print '''
+	You have %r bowgun bolts in the bowgun.
+	''' % config.bowgun_bolts
+		elif ('bowgun' in config.item_cache and 
+		     'bowgun 2' in config.item_cache):
+			print '''
+	You have %r bowgun bolts in bowgun 1.
+	''' % config.bowgun_bolts
+			print '''
+	You have %r bowgun bolts in bowgun 2.
+	''' % config.bowgun_bolts_2
+		elif ('bowgun 2' in config.item_cache and 
+		     'bowgun' not in config.item_cache):
+			print '''
+	You have %r bowgun bolts in the bowgun.
+	''' % config.bowgun_bolts_2
+		else:
+			pass
+		
+	def end_fight_if_no_monsters(self):
+		pass
+						

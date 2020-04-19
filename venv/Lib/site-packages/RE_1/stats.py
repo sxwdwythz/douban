@@ -1,0 +1,1215 @@
+import datetime
+import time
+import random
+from sys import exit
+
+import config
+
+
+instructions_item_cache = '''
+	Type 0 to select the first item.
+	Type 1 to select the second item.
+	Type 2 to select the third item.
+	Type 3 to select the fourth item.
+	Type 4 to select the fifth item.
+	Type 5 to select the sixth item.
+	Type 6 to select the seventh item.
+	Type 7 to select the eighth item.
+	'''
+	
+config.prompt = 'Please select 1 or 2.   '
+config.prompt3 = 'Please select 1, 2, 3, or 4.   '
+
+
+class Statistics(object):
+
+
+	def stat_func(self):
+		print '''
+		
+	Your health is %r.
+	''' % config.health
+		print '''
+	Your item cache shows the following items:
+	'''
+		print config.item_cache
+		Statistics().handgun_stats()
+		
+	def handgun_stats(self):
+		print '''
+	Your have %r handgun bullets in total.
+	''' % config.handgun_bullets
+		if 'handgun' in config.item_cache:
+			print '''
+	You have %r handgun bullets available for fighting.
+	''' % config.total_cache_bullets
+			print '''
+	You have %r handgun bullets in your gun.
+	''' % config.gun_bullets
+		else:
+			print '''
+	You have %r handgun bullets in your item cache.
+	''' % config.cache_bullets
+		if 'handgun bullets' in config.item_box:
+			print '''
+	You have %r handgun bullets in your item box.
+	''' % config.box_bullets
+		else:
+			pass
+		Statistics().bowgun_stats()
+		
+	def bowgun_stats(self):
+		if (config.picked_up_kendo_bowgun and 
+		        config.bowgun_available):
+			print '''
+	You have %r bowgun bolts.
+	''' % config.bowgun_bolts
+		elif (not config.picked_up_kendo_bowgun and 
+		        not config.bowgun_available):
+			print '''
+	You have %r bowgun bolts.
+	''' % config.bowgun_bolts_2
+		elif (config.picked_up_kendo_bowgun and 
+		        not config.bowgun_available):
+			print '''
+	You have %r bowgun bolts in bowgun 1.
+	''' % config.bowgun_bolts
+			print '''
+	You have %r bowgun bolts in bowgun 2.
+	''' % config.bowgun_bolts_2
+		else:
+			pass
+		
+		
+class UseItem(object):
+
+
+	def use_item(self):
+		print '''
+	Would you like to use an item?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			UseItem().select_item_to_use()
+		else:
+			print '''
+	You have selected not to use an item.
+	'''
+	
+	def select_item_to_use(self):
+		print '''
+	Here is your item cache.
+	'''
+		print config.item_cache
+		print '''
+	Select the item you want to use.
+	'''
+		print instructions_item_cache
+		while True:
+			config.item_choice = raw_input('>   ')
+			while (config.item_choice != '0' and 
+			        config.item_choice != '1' and 
+					config.item_choice != '2' and 
+					config.item_choice != '3' and 
+					config.item_choice != '4' and 
+					config.item_choice != '5' and 
+					config.item_choice != '6' and 
+					config.item_choice != '7'
+				    ):
+				print '''
+	Type an integer between 0 and 7.
+	'''
+				config.item_choice = raw_input('>   ')
+			if (int(config.item_choice) + 1) > len(config.item_cache):
+				print '''
+	You can only select a number for which you have an item.
+	'''
+			if int(config.item_choice) + 1 <= len(config.item_cache):
+				break
+		config.chosen_item = config.item_cache[int(config.item_choice)]
+		UseItem().return_next_method_depending_on_item()
+		
+	def return_next_method_depending_on_item(self):
+		if (config.chosen_item == 'green herb' or 
+		        config.chosen_item == 'red herb'):
+			UseItem().first_herb()
+		elif (config.chosen_item == 'green red herb mix' or 
+			    config.chosen_item == 'green green herb mix' or 
+			    config.chosen_item == 'green green green herb mix'
+			    ):
+			UseItem().use_herb_mixes()
+		elif config.chosen_item == 'unicorn medal':
+			UseItem().unicorn_medal()
+		elif config.chosen_item == 'spade key':
+			UseItem().spade_key()
+		else:
+			print '''
+	You cannot use this item. Try selecting an item again.
+	'''
+			UseItem().use_item()
+							
+	def first_herb(self):
+		print '''
+	Do you want to combine the first herb with a second herb?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			UseItem().determine_second_herb()
+		else:
+			UseItem().prompt_whether_use_first_herb()
+			
+	def determine_second_herb(self):
+		print '''
+	Select your other herb from your item cache.
+	'''
+		print config.item_cache
+		print instructions_item_cache
+		config.item_choice2 = 'bug'
+		while True:
+			config.item_choice2 = raw_input('Select your second herb. ')
+			while (config.item_choice2 != '0' and 
+			        config.item_choice2 != '1' and 
+					config.item_choice2 != '2' and 
+					config.item_choice2 != '3' and 
+					config.item_choice2 != '4' and 
+                    config.item_choice2 != '5' and 
+					config.item_choice2 !='6' and 
+					config.item_choice2 != '7'
+				    ):
+				print '''
+	Type an integer between 0 and 7.
+	'''
+				config.item_choice2 = raw_input('>   ')
+			if config.item_choice == config.item_choice2:
+				print '''
+	You can't select the same item twice.
+	'''
+			if int(config.item_choice2) + 1 > len(config.item_cache):
+				print '''
+	You cannot select a number for which you do not have an item.
+	'''
+			if (config.item_choice != config.item_choice2 and 
+			        int(config.item_choice2) + 1 <= 
+					len(config.item_cache)):
+				break
+			else:
+				pass
+		config.chosen_item2 = config.item_cache[int(config.item_choice2)]
+		UseItem().determine_method_based_on_second_herb_chosen()
+		
+	def determine_method_based_on_second_herb_chosen(self):
+		if (config.chosen_item2 == 'green herb' or  
+		        config.chosen_item2 == 'red herb'):
+			print '''
+	Would you like to select a third herb?
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				UseItem().second_herb()
+			else:
+				UseItem().use_second_herb()			
+		else:
+			print '''
+	Your second item must be another herb.
+	'''
+			UseItem().first_herb()
+			
+	def prompt_whether_use_first_herb(self):
+		print '''
+	Do you want to use the first herb?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			if config.chosen_item == 'green herb':
+				config.herb_mix = 4
+				UseItem().use_herb_mix()	
+			else:
+				print '''
+	You cannot use a red herb by itself. You will be taken
+	back to the item selection screen.
+	'''
+				UseItem().use_item()
+		else:
+			print '''
+	You chose not to use the herb. You will be taken back to the 
+	item select menu.
+	'''
+			UseItem().use_item()
+						
+	def second_herb(self):
+		print '''
+	Select the third herb from your item cache.
+	'''
+		print config.item_cache
+		print instructions_item_cache
+		config.item_choice3 = 'bug'
+		while True:
+			config.item_choice3 = raw_input('>   ')
+			while (config.item_choice3 != '0' and 
+			        config.item_choice3 != '1' and 
+					config.item_choice3 != '2' and 
+					config.item_choice3 != '3' and 
+					config.item_choice3 != '4' and 
+					config.item_choice3 != '5' and 
+			        config.item_choice3 != '6' and 
+					config.item_choice3 != '7'):
+				print '''
+	Type a number between 0 and 7.
+	'''
+				config.item_choice3 = raw_input('>   ')
+			if (config.item_choice3 == config.item_choice or 
+			      config.item_choice3 == config.item_choice2):
+				print '''
+	You cannot select an herb you already selected.
+	'''
+			if int(config.item_choice3) + 1 > len(config.item_cache):
+				print '''
+	You cannot select a slot for which you don't have an item.
+	'''
+			if (int(config.item_choice3) + 1 <= len(config.item_cache) and 
+			        config.item_choice3 != config.item_choice and 
+			        config.item_choice3 != config.item_choice2
+				    ):
+				break	
+		config.chosen_item3 = config.item_cache[int(config.item_choice3)]
+		UseItem().determine_method_based_on_third_item_chosen()
+		
+	def determine_method_based_on_third_item_chosen(self):
+		if (config.chosen_item3 == 'green herb' or 
+		        config.chosen_item3 == 'red herb'):
+			UseItem().use_third_herb()
+		else:
+			print '''
+	Your third herb must be an herb. This is not an herb.
+	'''
+			UseItem().determine_method_based_on_second_herb_chosen()
+		
+	def use_third_herb(self):
+		item_1 = config.chosen_item + '1'
+		item_2 = config.chosen_item2 + '2'
+		item_3 = config.chosen_item3 + '3'
+		config.herb_mix = '%s %s %s' % (item_1, item_2, item_3)
+		#print config.herb_mix
+		if ('green herb1' in config.herb_mix and 'green herb2' in 
+		        config.herb_mix and 'green herb3' in config.herb_mix):
+			config.herb_mix = 1
+			UseItem().decide_third_herb()
+		else:
+			print '''
+	These three herbs cannot be combined. You must start over in 
+	selecting items.
+	'''
+			UseItem().use_item()
+			
+	def decide_third_herb(self):		
+		if config.herb_mix == 1:		
+			print '''
+	Your herb mix is %s %s %s.
+	''' % (
+	            config.chosen_item, config.chosen_item2, 
+				config.chosen_item3
+		        )							 
+			print '''
+	Will you combine the herb mix?
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				UseItem().combine_herbs()
+			else:
+				UseItem().prompt_whether_use_herb_combo()
+				
+	def use_second_herb(self):
+		item_1 = config.chosen_item + '1'
+		item_2 = config.chosen_item2 + '2'
+		config.herb_mix = '%s %s' % (item_1, item_2)
+		if ('green herb1' in config.herb_mix and 
+		        'green herb2' in config.herb_mix):
+			config.herb_mix = 6
+			UseItem().decide_second_herb()
+		elif ('green herb' in config.herb_mix and 
+			    'red herb' in config.herb_mix):
+			config.herb_mix = 7
+			UseItem().decide_second_herb()
+		else:
+			print '''
+	The two herbs you selected are not a valid herb combination.
+	You must start over the item selection process.
+	'''
+			UseItem().use_item()
+			
+	def decide_second_herb(self):		
+		if config.herb_mix == 6 or config.herb_mix == 7:
+			print '''
+	Would you like to combine the herbs?
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				UseItem().combine_herbs()
+			else:
+				UseItem().prompt_whether_use_herb_combo()
+				
+	def prompt_whether_use_herb_combo(self):
+		print '''
+	Would you like to use the herb mix?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			UseItem().use_herb_mix()
+		else:
+			print '''
+	You have chosen not to use the herb mix. You will now go
+	back to the item selection menu.
+	'''
+			UseItem().use_item()
+		
+	def combine_herbs(self):
+		if config.herb_mix == 1:
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('green herb')
+			config.item_cache.append('green green green herb mix')
+		elif config.herb_mix == 6:
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('green herb')
+			config.item_cache.append('green green herb mix')
+		elif config.herb_mix == 7:
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('red herb')
+			config.item_cache.append('green red herb mix')
+		else:
+			pass
+		UseItem().display_item_cache_after_decision_to_combine_herbs()
+		
+	def display_item_cache_after_decision_to_combine_herbs(self):			
+		print '''
+	Here is your item cache:
+	'''
+		print config.item_cache
+		print '''
+	You will now be taken back to the item selection screen.
+	'''
+		UseItem().use_item()
+				
+	def use_herb_mix(self):
+		if config.herb_mix == 1:
+			print '''
+	You have used the %s %s %s mix.
+	''' % (config.chosen_item, 
+			config.chosen_item2, 
+			config.chosen_item3)
+		elif config.herb_mix == 4:
+			print '''
+	You have used the %r.
+	''' % config.chosen_item
+		elif config.herb_mix == 6 or config.herb_mix == 7:
+			print '''
+	You have used the %s %s mix.
+	''' % (config.chosen_item, config.chosen_item2)
+		UseItem().remove_herbs_and_adjust_health()
+		
+	def remove_herbs_and_adjust_health(self):
+		if config.herb_mix == 1:
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('green herb')
+			config.health = config.health + 100	
+		elif config.herb_mix == 4:
+			config.item_cache.remove('green herb')
+			config.health = config.health + 25
+		elif config.herb_mix == 6:
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('green herb')
+			config.health = config.health + 50
+		elif config.herb_mix == 7:
+			config.item_cache.remove('green herb')
+			config.item_cache.remove('red herb')
+			config.health = config.health + 100
+		else:
+			pass
+		if config.health > 100:
+			config.health = 100
+		else:
+			pass
+		UseItem().display_health_after_using_herbs()
+		
+	def display_health_after_using_herbs(self):		
+		print '''
+	Your health is now %r.
+	''' % config.health
+		print '''
+	Here is your item cache.
+	''' 
+		print config.item_cache
+		print '''
+	You will now be taken to the item selection menu.
+	'''
+		UseItem().use_item()
+		
+	def use_herb_mixes(self):
+		if config.chosen_item == 'green red herb mix':
+			print '''
+	You have used the green red herb mix.
+	'''
+			config.health = config.health + 100
+			config.item_cache.remove('green red herb mix')
+		elif config.chosen_item == 'green green herb mix':
+			print '''
+	You have used the green green herb mix.
+	'''
+			config.health = config.health + 50
+			config.item_cache.remove('green green herb mix')
+		elif config.chosen_item == 'green green green herb mix':
+			print '''
+	You have used the green green green herb mix.
+	'''
+			config.item_cache.remove('green green green herb mix')
+		else:
+			pass	
+		if config.health > 100:
+			config.health = 100
+		else:
+			pass
+		UseItem().display_health_after_using_herbs()
+		
+	def unicorn_medal(self):
+		if config.can_use_unicorn:
+			config.used_unicorn = True
+			config.first_time_unicorn = True
+		else:
+			config.used_unicorn = False
+			print '''
+	You cannot use this item now.
+	You will be taken back to the item selection screen.
+	'''
+			UseItem().use_item()
+			
+	def spade_key(self):
+		if config.can_use_spade_key:
+			config.used_spade_key = True
+			config.first_time_spade_key = True
+		else:
+			config.used_spade_key = False
+			print '''
+	You cannot use this item now.
+	You will be taken back to the item selection screen.
+	'''
+			UseItem().use_item()
+
+			
+class GoBack(object):
+
+
+	def go_back(self):
+		print '''
+	Would you like to go back to the previous room?
+	1. Yes
+	2. No
+	'''
+		config.return_old_room = 0
+		while (config.return_old_room != '1' and 
+		        config.return_old_room != '2'):
+			config.return_old_room = raw_input(config.prompt)
+		if config.return_old_room == '1':
+			pass
+		else:
+			pass
+			
+	def changed_mind(self):
+		config.changed_my_mind = 0
+		while (config.changed_my_mind != '1' and 
+		        config.changed_my_mind != '2'):
+			config.changed_my_mind = raw_input(config.prompt)
+		if config.changed_my_mind == '1':
+			pass
+		else:
+			pass
+			
+			
+class ExploreRoom(object):
+
+
+	def explore_room(self):
+		print '''
+	Would you like to explore this room?
+	1. Yes
+	2. No
+	'''
+		config.explore = 0
+		while config.explore != '1' and config.explore != '2':
+			config.explore = raw_input(config.prompt)
+			
+			
+class MultipleChoices(object):
+
+
+	def two_choices(self):
+		config.choice = 0
+		while config.choice != '1' and config.choice != '2':
+			config.choice = raw_input(config.prompt)
+			
+	def three_choices(self):
+		config.choice = 0
+		while (config.choice != '1' and config.choice != '2' and 
+		        config.choice != '3'):
+			config.choice = raw_input('Please select 1, 2, or 3.   ')
+			
+	def four_choices(self):
+		config.choice = 0
+		while (config.choice != '1' and config.choice != '2' and 
+		        config.choice != '3' and config.choice != '4'):
+			config.choice = raw_input(config.prompt3)
+			
+	def five_choices(self):
+		config.choice = 0
+		while (config.choice != '1' and config.choice != '2' and 
+		        config.choice != '3' and config.choice != '4' and 
+			    config.choice != '5'
+				):
+			config.choice = raw_input('Please select 1-5.   ')
+
+	def six_choices(self):
+		config.choice = 0
+		while (config.choice != '1' and config.choice != '2' and 
+		        config.choice != '3' and config.choice != '4' and 
+			    config.choice != '5' and config.choice != '6'
+				):
+			config.choice = raw_input('Please select 1-6.   ') 
+			
+			
+class Rules(object):
+
+
+	def rules(self):
+		print '''
+	Do you want to read the rules?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Rules().read_rules()
+		else:
+			print '''
+	You have chosen not to read any rules.
+	'''	
+			
+	def read_rules(self):		
+		print '''
+	Select something you want to learn more about?
+	1. How handgun + bullets work
+	2. How bowgun + bullets work
+	3. How health works
+	4. How healing works
+	5. How fighting zombies works
+	6. Exploring Rooms
+	7. Item Box
+	8. None
+	'''
+		choice = 0
+		while (choice != '1' and choice != '2' and choice != '3' and
+		        choice != '4' and choice != '5' and choice != '6' and 
+			    choice != '7' and choice != '8'
+				):
+			choice = raw_input('Please select 1-8.   ')
+		if choice == '1':
+			print '''
+	It takes 9 handgun bullets to kill each zombie. Your gun fires 3 
+	rounds at a time. Thus, if you fire the gun correctly, you will 
+	do 3 points of damage to the zombie. If you miss (do not press the
+	buttons correctly), you will lose the amount of bullets you fired 
+	and do no damage to the zombies. As the gun fires in bursts of 3, 
+	you will not lose more than 3 bullets each time you fire the gun. 
+	(E.g.- if the screen says press "aaa" and you press "aaaa" you will 
+	lose 3 bullets, not 4 bullets). If you have less than 3 bullets, 
+	you will not be able to fire your gun.
+	'''
+		elif choice == '2':
+			print '''
+	It takes 3 bowgun bolts to kill each zombie. Your gun fires 3 
+	bolts at a time. Thus, if you fire the gun correctly, you will 
+	do 9 points of damage to the zombie. If you miss (do not press the
+	buttons correctly), you will lose the amount of bolts you fired 
+	and do no damage to the zombies. As the gun fires in bursts of 3, 
+	you will not lose more than 3 bolts each time you fire the gun. 
+	(E.g.- if the screen says press "aaa" and you press "aaaa" you will 
+	lose 3 bolts, not 4 bolts). If you have zero bolts, you will not be 
+	able to fire your gun. If you have 2 bolts left, and you attack
+	correctly, (e.g. press "aaa"), then you will do 6 points of damage 
+	to a zombie. If you have 1 bolt and attack correctly, you will do 3
+	points of damage to a zombie.
+	'''
+		elif choice == '3':
+			print '''
+	Leon loses 7 points of health each time he is bitten by a zombie
+	and Claire loses 10 points of health for each bite. Leon loses 20
+	points of health for each licker attack and Claire loses 25 points
+	of health for each licker attack. Note that if you take too long 
+	to kill or dodge lickers, they can attack you twice. Thus, Leon 
+	can lose up to 40 points of health during a licker battle and 
+	Claire can lose up to 50 points of health during a licker  battle. 
+	Once you have zero health, you die.
+	'''
+		elif choice == '4':
+			print '''
+	You can pick up green or red herbs throughout the game and add
+	them to your item cache. When you enter a new room, you can use 
+	items. You can select to use herbs. Green herbs heal 25% of health. 
+	Red herbs can only be used with green herbs. Green + Green herb 
+	combo heals 50% of health. Green + Red Herb combo heals 100% of 
+	health. Green + Green + Green herb combo heals 100% of health.
+	'''
+		elif choice == '5':
+			print '''
+	If you are in a zombie combat and choose to fight, you must
+	shoot the zombies quickly enough or you will take a bite. You 
+	must press the buttons exactly as they appear to damage a zombie. 
+	If you press the buttons incorrectly, you will lose bullets and 
+	not damage the zombie. If you press "exit" during a fight or run 
+	out of bullets, you will be taken to dodge mode. You will not 
+	take a bite (unless you have already taken too long in the zombie 
+	fight). Pressing "exit" or running out of bullets takes you into 
+	dodge mode, where you will have to type the letters on the screen 
+	quickly in order to not take a bite. You get 2 extra seconds to 
+	dodge for every zombie you have previously killed.
+	'''
+		elif choice == '6':
+			print '''
+	When you enter a new room, you will be given a description of 
+	the room and a choice to explore it. If you explore the room 
+	you may encounter items, monsters, or nothing at all.
+	'''
+		elif choice == '7':
+			print '''
+	You can only hold 8 items at a time. Thus, if you a running
+	low on slots in your item cache, you may have to use an item 
+	box. An item box lets you store any items you don't want to 
+	carry. You will not be able to use these items until you 
+	retrive them back from your item box and put them in your item 
+	cache. For example, any guns or bullets that are in your item 
+	box and not your item cache cannot be used. Any healing herbs 
+	in your item cache and not your item box cannot be used.
+	'''
+		elif choice == '8':
+			print '''
+	You have chosen not to read any rules.
+	'''
+		else:
+			pass
+			
+		if choice != '8':	
+			print '''
+	Do you want to read more rules?
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				Rules().read_rules()
+			else:
+				pass
+				
+				
+class AllMessages(object):
+		
+		
+	def check_all(self):
+		config.choice = 0
+		while config.choice != '4':
+			print '''
+	Please select one of the following.
+	1. Read the rules
+	2. Check Status
+	3. Use Item
+	4. None of these.
+	'''
+			MultipleChoices().four_choices()
+			if config.choice == '1':
+				Rules().read_rules()
+			elif config.choice == '2':
+				Statistics().stat_func()
+			elif config.choice == '3':
+				UseItem().select_item_to_use()
+			else:
+				pass
+		
+		
+class Bullets(object):
+
+
+	def pick_up_bullets(self):
+		print '''
+	You see a pack of handgun bullets. Will you take the bullets?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Bullets().chose_to_take_bullets()		
+		else:
+			print '''
+	You have chosen not to pick up the handgun bullets.
+	'''
+			config.picked_up_bullets = False
+			
+	def chose_to_take_bullets(self):
+		if 'handgun bullets' in config.item_cache:
+			Bullets().can_take_bullets()	
+		else:
+			if len(config.item_cache) < 8:
+				config.item_cache.append('handgun bullets')
+				print '''
+	The bullets have been added to your item cache.
+	'''
+				Bullets().can_take_bullets()
+			else:
+				print config.item_cache_full
+				config.picked_up_bullets = False
+					
+	def can_take_bullets(self):
+		config.handgun_bullets = config.handgun_bullets + 15
+		config.picked_up_bullets = True
+		config.total_cache_bullets = config.total_cache_bullets + 15
+		if 'handgun' in config.item_cache:
+			Bullets().gun_is_with_you()
+		else:
+			config.cache_bullets = config.total_cache_bullets
+				
+	def gun_is_with_you(self):
+		if config.character == '1':
+			Bullets().leon_bullets()	
+		else:
+			Bullets().claire_bullets()
+			
+	def leon_bullets(self):
+		config.gun_bullets = config.gun_bullets + 15
+		if config.gun_bullets > 18:
+			config.gun_bullets = 18
+		config.cache_bullets = (config.total_cache_bullets - 
+							   config.gun_bullets)
+				
+	def claire_bullets(self):
+		config.gun_bullets = config.gun_bullets + 15
+		if config.gun_bullets > 13:
+			config.gun_bullets = 13
+		config.cache_bullets = (config.total_cache_bullets - 
+							   config.gun_bullets)
+											
+											
+class ItemBox(object):
+
+
+	def item_box(self):
+		print '''
+	Would you like to use the item box?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			ItemBox().item_box_2()
+		else:
+			pass
+			
+	def item_box_2(self):
+		print '''
+	Will you put items into your item box or retrive
+	items from your item box?
+	1. Remove items from item cache and add to item box
+	2. Retrieve items from item box and add to item cache
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			ItemBox().remove_items()
+		else:
+			ItemBox().retrive_items()
+			
+	def remove_items(self):
+		if len(config.item_cache) == 0:
+			print '''
+	You cannot perform this procedure as you have no items in
+	your item cache. You will now be take back to the item box
+	start menu.
+	'''
+			ItemBox().item_box()
+		else:
+			ItemBox().can_remove_items()
+			
+	def can_remove_items(self):
+		print '''
+	You have selected to transfer items from your item cache
+	to your item box. Select the item you want to transfer.
+	'''
+		ItemBox().select_from_item_cache()
+		if (config.chosen_item == 'handgun bullets' and 
+		    'handgun bullets' in config.item_box):
+			config.item_cache.remove(config.chosen_item)
+		else:
+			config.item_cache.remove(config.chosen_item)
+			config.item_box.append(config.chosen_item)
+		ItemBox().determine_if_cache_item_is_handgun_bullets()
+		
+	def determine_if_cache_item_is_handgun_bullets(self):
+		if config.chosen_item == 'handgun bullets':
+			config.box_bullets = (config.box_bullets + 
+			                     config.cache_bullets)
+			config.cache_bullets = 0
+			if 'handgun' in config.item_cache:
+				config.total_cache_bullets = (config.gun_bullets + 
+				                             config.cache_bullets)
+			else:
+				config.total_cache_bullets = config.cache_bullets
+		else:
+			pass
+		ItemBox().determine_if_cache_item_is_handgun()
+		
+	def determine_if_cache_item_is_handgun(self):
+		if config.chosen_item == 'handgun':
+			config.total_cache_bullets = config.cache_bullets
+		else:
+			pass
+		ItemBox().display_item_cache_and_box_transfer_cache_to_box()
+		
+	def display_item_cache_and_box_transfer_cache_to_box(self):
+		print '''
+	You have transferred an item from your item cache to your
+	item box.
+	'''
+		print '''
+	Here is your item cache:
+	'''
+		print config.item_cache
+		print '''
+	Here is your item box.
+	'''
+		print config.item_box
+		ItemBox().item_box()	
+	
+	def retrive_items(self):
+		if len(config.item_box) == 0:
+			print '''
+	You cannot perform this procedure as you have no items in
+	your item box. You will now be take back to the item box
+	start menu.
+	'''
+			ItemBox().item_box()
+		else:
+			ItemBox().can_retrieve_items()	
+			
+	def can_retrieve_items(self):
+		print '''
+	You have selected to transfer items from your item box
+	to your item cache. Select the item you want to transfer.
+	'''
+		ItemBox().select_from_item_box()
+		if len(config.item_cache) < 8:
+			ItemBox().still_slots_in_item_cache()
+		else:
+			print '''
+	You cannot add items to your item cache. Your item cache 
+	has 8 items. You will now be taken back to the item box
+	start menu.
+	'''
+			ItemBox().item_box()
+			
+	def still_slots_in_item_cache(self):
+		if (config.chosen_item == 'handgun bullets' and 
+		        'handgun bullets' in config.item_cache):
+			config.item_box.remove(config.chosen_item)
+		else:
+			config.item_box.remove(config.chosen_item)
+			config.item_cache.append(config.chosen_item)
+		if config.chosen_item == 'handgun bullets':
+			config.cache_bullets = (config.box_bullets + 
+			                       config.cache_bullets)
+			config.box_bullets = 0
+			if 'handgun' in config.item_cache:
+				config.total_cache_bullets = (config.gun_bullets + 
+				                             config.cache_bullets)
+				Reload().reload_gun()
+			else:
+				config.total_cache_bullets = config.cache_bullets
+		else:
+			pass
+		ItemBox().determine_if_box_chosen_item_is_handgun()
+		
+	def determine_if_box_chosen_item_is_handgun(self):
+		if config.chosen_item == 'handgun':
+			config.total_cache_bullets = (config.cache_bullets + 
+			                             config.gun_bullets)
+			Reload().reload_gun()
+		else:
+			pass
+		ItemBox().status_update()
+		
+	def status_update(self):
+		print '''
+	You have transferred an item from your item box to your
+	item cache.
+	'''
+		print '''
+	Here is your item cache:
+	'''
+		print config.item_cache
+		print '''
+	Here is your item box.
+	'''
+		print config.item_box
+		ItemBox().item_box()
+			
+	def select_from_item_cache(self):
+		print '''
+	Here is your item cache.
+	'''
+		print config.item_cache
+		print instructions_item_cache
+		config.chosen_item = 'tree'
+		config.exit = 0
+		while True:
+			config.item_choice = raw_input('>   ')
+			while (config.item_choice != '0' and 
+			        config.item_choice != '1' and 
+				    config.item_choice != '2' and 
+					config.item_choice != '3' and 
+					config.item_choice != '4' and 
+					config.item_choice != '5' and 
+					config.item_choice != '6' and 
+					config.item_choice != '7'
+					):
+				print '''
+	Type an integer between 0 and 7.
+	'''
+				config.item_choice = raw_input('>   ')
+				if len(config.item_cache) == 0:
+					print '''
+	You cannot perform this procedure as you have no items in 
+	your item box.
+	'''
+					config.exit = 'exit'
+					break
+			if config.exit == 'exit':
+				break
+			if (int(config.item_choice) + 1) > len(config.item_cache):
+				print '''
+	You can only select a number for which you have an item.
+	'''
+			if int(config.item_choice) + 1 <= len(config.item_cache):
+				break
+		if config.exit == 'exit':
+			ItemBox().item_box()
+		else:
+			config.chosen_item = config.item_cache[int(config.item_choice)]
+		
+	def select_from_item_box(self):
+		print '''
+	Here is your item box. It has 30 slots.
+	'''
+		print config.item_box
+		print '''
+	Select 0 to select the first item. 
+	Select 1 to select the second item.
+	Select 2 to select the third item, etc.
+	'''
+		config.chosen_item = 'tree'
+		config.exit = 0
+		while True:
+			config.item_choice = raw_input('>   ')
+			while (config.item_choice != '0' and 
+				    config.item_choice != '1' and 
+				    config.item_choice != '2' and 
+				    config.item_choice != '3' and 
+				    config.item_choice != '4' and 
+				    config.item_choice != '5' and 
+				    config.item_choice != '6' and 
+				    config.item_choice != '7' and 
+				    config.item_choice != '8' and 
+				    config.item_choice != '9' and 
+				    config.item_choice != '10' and 
+				    config.item_choice != '11' and 
+				    config.item_choice != '12' and 
+				    config.item_choice != '13' and 
+				    config.item_choice != '14' and 
+				    config.item_choice != '15' and 
+				    config.item_choice != '16' and 
+				    config.item_choice != '17' and 
+				    config.item_choice != '18' and 
+				    config.item_choice != '19' and 
+				    config.item_choice != '20' and 
+				    config.item_choice != '21' and 
+				    config.item_choice != '22' and 
+				    config.item_choice != '23' and 
+				    config.item_choice != '24' and 
+				    config.item_choice != '25' and 
+				    config.item_choice != '26' and 
+				    config.item_choice != '27' and 
+				    config.item_choice != '28' and 
+				    config.item_choice != '29'
+					):
+				print 'Type an integer between 0 and 29.'
+				config.item_choice = raw_input('>   ')
+				if len(config.item_box) == 0:
+					print '''
+	You cannot perform this procedure as you have no items in 
+	your item box.
+	'''
+					config.exit = 'exit'
+					break
+			if config.exit == 'exit':
+				break
+			if (int(config.item_choice) + 1) > len(config.item_box):
+				print '''
+	You can only select a number for which you have an item 
+	in your item box.
+	'''
+			if int(config.item_choice) + 1 <= len(config.item_box):
+				break
+		if config.exit == 'exit':
+			ItemBox().item_box()
+		else:
+			config.chosen_item = config.item_box[int(config.item_choice)]  
+			
+			
+class Reload(object):
+
+
+	def reload_gun(self):
+		if 'handgun' in config.item_cache:
+			Reload().can_reload_gun()
+		else:
+			pass
+			
+	def can_reload_gun(self):
+		if config.cache_bullets > 0:
+			Reload().spare_bullets_cache()
+		else:
+			pass
+			
+	def spare_bullets_cache(self):
+		if config.character == '1':
+			Reload().leon()
+		else:
+			Reload().claire()
+			
+	def leon(self):
+		if config.gun_bullets < 18:
+			if config.cache_bullets > 18:
+				config.gun_bullets = 18
+				config.cache_bullets = (config.total_cache_bullets - 
+				                       config.gun_bullets)
+			else:
+				config.gun_bullets = (config.gun_bullets + 
+				                      config.cache_bullets)
+				config.cache_bullets = (config.total_cache_bullets - 
+				                       config.gun_bullets)
+				if config.gun_bullets > 18:
+					config.gun_bullets = 18
+					config.cache_bullets = (config.total_cache_bullets - 
+				                           config.gun_bullets)
+					print '''
+	cache is %r.
+	''' % config.cache_bullets
+				else:
+					pass
+				if config.cache_bullets < 0:
+					config.gun_bullets = (config.gun_bullets + 
+						                 config.cache_bullets)
+					config.cache_bullets = 0
+					print '''
+	cache is %r.
+	''' % config.cache_bullets
+				else:
+					pass
+		else:
+			pass
+		Reload().stats()
+		
+	def claire(self): 
+		if config.gun_bullets < 13:
+			if config.cache_bullets > 13:
+				config.gun_bullets = 13
+				config.cache_bullets = (config.total_cache_bullets - 
+				                        config.gun_bullets)
+			else:
+				config.gun_bullets = (config.gun_bullets + 
+				                        config.cache_bullets)
+				config.cache_bullets = (config.total_cache_bullets - 
+				                        config.gun_bullets)
+				if config.gun_bullets > 13:
+					config.gun_bullets = 13
+					config.cache_bullets = (config.total_cache_bullets - 
+				                            config.gun_bullets)
+					print '''
+	cache is %r.
+	''' % config.cache_bullets
+				else:
+					pass
+				if config.cache_bullets < 0:
+					config.gun_bullets = (
+					    config.gun_bullets + config.cache_bullets
+						)
+					config.cache_bullets = 0
+					print '''
+	cache is %r.
+	''' % config.cache_bullets
+				else:
+					pass
+		else:
+			pass
+		Reload().stats()
+		
+	def stats(self):		
+		if 'handgun bullets' in config.item_cache:
+			if config.cache_bullets == 0:
+				config.item_cache.remove('handgun bullets')
+			else:
+				pass
+		else:
+			pass
+		config.total_cache_bullets = (
+		    config.cache_bullets + config.gun_bullets
+			)
+		print '''
+	You have %r bullets in your gun.
+	''' % config.gun_bullets
+		if not config.monster_combat:
+			print '''
+	You have %r total bullets in your item cache.
+	''' % config.total_cache_bullets
+		else:
+			pass
+			
+			
+class TakeItem(object):
+
+
+	def take_item(self):
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			if len(config.item_cache) < 8:
+				print '''
+	You have taken the item.
+	'''
+				config.took_item = True
+			else:
+				print config.item_cache_full
+				config.took_item = False
+		else:
+			config.took_item = False
+			print '''
+	You have chosen not to take the item.
+	'''
+		
+			

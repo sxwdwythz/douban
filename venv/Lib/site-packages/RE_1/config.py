@@ -1,0 +1,158 @@
+health = 100
+handgun_bullets = 13
+number_of_monsters = 0
+monster_health = 9
+item_cache = []
+total_monster_health = 0
+character = 0
+original_number_of_monsters = 0
+dodge_time = 0
+item_choice = 0
+item_choice2 = 0
+chosen_item = 0
+chosen_item2 = 0
+item_choice3 = 0
+chosen_item3 = 0
+herb_mix = 0
+prompt = 0
+prompt2 = 'Select 1, 2, or 3.   '
+number_of_zombies_intro_room = 0
+return_old_room = 0
+briefly_describe_room = False
+bullets_used = 0
+total_health_zombies_intro_room = 0
+bullets_available_left = False
+bullets_available_right = False
+exit_zombie_scene = False
+room = 0
+kendo_room_layout = 0
+shoot_time = 0
+kendo_start_zombies = False
+kendo_number_of_zombies = 0
+total_health_zombies_kendo = 0
+picked_up_kendo_bowgun = False
+choice = 0
+first_time_intro_zombies = 0
+first_time_kendo_zombies = 0
+zombies_just_broke_window = True
+go_to_intro_room = False
+bowgun_bolts = 0
+bowgun = 0
+handgun_equipped = False
+nothing_there = 0
+going_forward = False
+counter_alley = 0
+went_left_or_right = False
+passed_bowgun = False
+already_fought_zombies = False
+alley_start_zombies = True
+first_time_alley_zombies = 4
+total_health_zombies_alley = 0
+alley_number_of_zombies = 4
+counter_front = 0
+going_forward_alley = True
+front_start_zombies = False
+first_time_front_zombies = 5
+total_health_zombies_front = 0
+front_number_of_zombies = 5
+going_forward_front = True
+counter_station = 0
+handgun_bullets_available_station = True
+red_herb_available_station = True
+green_herb_available_station = True
+counter_corridor_1 = 0
+police_station_prompt = '''
+	You will now go back to the police station lobby.
+	'''
+item_box = []
+item_cache_full = '''
+	You do not have any more item slots in your item cache.
+	Thus, you cannot pick up any more items.
+	'''
+box_bullets = 0
+cache_bullets = handgun_bullets
+total_cache_bullets = 0
+gun_bullets = 0
+monster_is_zombie = True
+corridor_start_monsters = True
+corridor_green_herb_available = True
+corridor_number_of_monsters = 0
+total_health_monsters_corridor = 0
+first_time_corridor_monsters = 0
+going_forward_corridor = True
+zombie_combat = False
+counter_mailroom = 0
+bowgun_available = True
+going_forward_mailroom = True
+locker = '1'
+mailroom_start_zombies = 0
+mailroom_number_of_zombies = 0
+mailroom_total_health_zombies = 0
+first_time_mailroom_zombies = 0
+counter_STARS_office = 0
+unicorn_medal_available = True
+bowgun_bolts_2 = 0
+bowgun_equipped = 0
+both_bowguns = False
+counter = 0
+a = 0
+choice1 = 0
+choice2 = 0
+choice3 = 0
+stars_start_zombies = False
+stars_number_of_monsters = 2
+stars_total_health_monsters = 0
+first_time_stars_monsters = 0
+going_forward_stars = False
+can_use_unicorn = False
+used_unicorn = False
+took_item = False
+can_use_spade_key = False
+first_time_spade_key = False
+used_spade_key = False
+option_to_pick_up_bowgun_occurred = False
+c = 0
+d = 0
+code1 = 0
+code2 = 0
+code3 = 0
+code4 = 0
+code5 = 0
+code6 = 0
+code7 = 0
+code8 = 0
+code9 = 0
+code10 = 0
+code11 = 0
+code12 = 0
+dodge = 0
+left_right_exit_main_backward = '''
+	What will you do?
+	
+	1. Leave this room (go to the alley way)
+	(Note: To do this, you will have to fight/dodge any 
+	remaining zombies.)
+	
+	2. Leave this room (go to the main street, which is the 
+	introduction scene.) 
+	
+	3. Explore the left side of the room. (Note: this was
+	your right when you walked in from the main street.)
+	
+	4. Explore the right side of the room. (Note: this was
+	your left when you walked in from the main street.)
+	'''
+left_right_exit_main_forward = '''
+	What will you do?
+	
+	1. Leave this room (go to the alley way)
+	(Note: To do this, you will have to fight/dodge any 
+	remaining zombies.)
+	
+	2. Leave this room (go to the main street, which is the 
+	introduction scene.) 
+	
+	3. Explore the left side of the room. 
+	
+	4. Explore the right side of the room.
+	'''

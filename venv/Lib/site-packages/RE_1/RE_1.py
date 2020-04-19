@@ -1,0 +1,1804 @@
+import datetime
+import time
+import random
+from random import randint
+from sys import exit
+
+from stats import Statistics
+from stats import UseItem
+from stats import GoBack
+from stats import ExploreRoom
+from stats import MultipleChoices
+from stats import Rules
+from stats import AllMessages
+from stats import Bullets
+from stats import ItemBox
+from stats import TakeItem
+import config
+from zombie_combat import ZombieBattle
+
+
+class IntroductionScene(object):
+
+
+	def select_character(self):
+		Rules().rules()
+		print '''
+	Before you start, select a character. You can select Leon or
+	Claire. Leon takes less damage than Claire when attacked by 
+	enemies, however, he is slower and cannot dodge as easily. Claire
+	takes more damage than Leon but can run quicker and dodge more 
+	easily. Both characters start with 100 health. Herbs heal both 
+	characters the same amount. Leon starts with a handgun and 18 
+	bullets. Claire starts with a handgun and 13 bullets.
+	Who will you choose?
+	1. Leon Kennedy
+	2. Claire Redfield.
+	'''
+		config.character = 0
+		while config.character != '1' and config.character != '2':
+			config.character = raw_input('Select 1 or 2.   ')
+		if config.character == '1':
+			IntroductionScene().leon_story()
+		else:
+			IntroductionScene().claire_story()
+			
+	def leon_story(self):
+		print '''
+	You are Leon Kennedy. You are driving to Racoon City. It 
+	is your first day as an officer of the Racoon City Police 
+	Department. When you arrive in Racoon City, you see a dead 
+	person in the road. You hear strange sounds. You turn around 
+	and there are 4 people coming at you. You say "Don't move or 
+	I'll shoot!" They don't stop moving so you shoot them. They 
+	don't fall down. What are these things? All of a sudden, the 
+	dead guy you were investigating starts grabbing your leg. You 
+	kick him and run away. You go to the door of a diner and the 
+	door flies open.
+	
+	You see a woman. She says "Don't shoot!" You say "Get down!"
+	She does and you shoot the zombie behind her. You tell her to 
+	get into your police car and you'll drive her to the station. 
+	She tells you that her name is Claire Redfield and that she is 
+	looking for her brother Chris. You give her a gun.
+	
+	Just then, you notice there is a zombie in the car. You swerve 
+	and the zombie dies. In the rear view mirror, you see a semi truck 
+	coming towards you. You get out of the car just in time. Now you 
+	and Claire are on opposite sides of Racoon City and must each make
+	your way to the police station.
+	'''	
+		IntroductionScene().opening_stats()
+		
+	def claire_story(self):
+		print '''
+	You are Claire Redfield. You have recently arrived in Racoon
+	City looking for your brother Chris. When you arrived, you
+	noticed that something in this town was very wrong. Soon after,
+	you were attacked by a man eating another human! Later you met
+	Leon Kennedy, rookie police officer. He gave you a gun and you
+	rode in his police car. He said he was driving to the station
+	as it would be a lot safer there. Soon after, you realized that
+	a zombie was in the car. Leon swerved to avoid the zombie. He
+	got the zombie out of the car, but crashed. Then a semi-truck
+	with no driver was running down the street towards the car. You
+	barely made it out of the car before the semi-truck totalled it.
+	Now you and Leon are on opposite sides of Racoon City and must
+	each make your own way to the police station.
+	'''		
+		IntroductionScene().opening_stats()
+		
+	def opening_stats(self):		
+		print '''
+	Here are your opening stats.
+	'''
+		config.health = 100
+		print '''
+	Your health is at %r.
+	''' % config.health
+		if config.character == '1':
+			config.handgun_bullets = 18
+		else:
+			config.handgun_bullets = 13
+		config.gun_bullets = config.handgun_bullets
+		config.cache_bullets = 0
+		config.total_cache_bullets = (config.gun_bullets + 
+		                             config.cache_bullets)                      
+		print '''
+	You have %r handgun bullets.
+	''' % config.handgun_bullets
+		config.item_cache = ['handgun']
+		print '''
+	Here is your item cache: % r.
+	''' % config.item_cache
+		print '''
+	Note that you can carry up to 8 items at a time. You can drop items
+	to use later when you reach an item box.
+	'''
+		response = raw_input('Press enter to continue playing.   ')
+		IntroductionScene().describe_zombie_attack()
+		
+	def describe_zombie_attack(self):
+		print '''
+	You see four zombies coming at you. The zombies are to the right
+	and there is a door leading to a gun shop on the left.
+	'''
+		config.monster_is_zombie = True
+		config.number_of_monsters = 4
+		config.original_number_of_monsters = 4
+		config.first_time_intro_zombies = 4
+		config.monster_health = 9
+		config.total_monster_health = (config.original_number_of_monsters *
+		                               config.monster_health)
+		config.dodge_time = 10
+		config.shoot_time = 10
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.number_of_zombies_intro_room = config.number_of_monsters
+		config.total_health_zombies_intro_room = config.total_monster_health
+		JoeKendo().return_room_description()
+		
+	def go_back_to_intro(self):
+		print '''
+	You are back in the introduction setting outside Joe Kendo's 
+	gun shop. There is nothing to explore in this room.
+	'''
+		AllMessages().check_all()
+		if config.number_of_zombies_intro_room == 0:
+			print'''
+	Do you still want to keep exploring this room?
+	1. Yes
+	2. No
+	'''
+		elif config.number_of_zombies_intro_room > 0:
+			print '''
+	To go further back, you will have to fight and or dodge any 
+	zombies still left in this room. Do you want to keep exploring 
+	this room and encounter the zombies?
+	1. Yes-Encounter Zombies
+	2. No-Go Back to Joe Kendo's Shop
+	'''
+		GoBack().changed_mind()
+		if config.changed_my_mind == '2':
+			config.briefly_describe_room = True
+			JoeKendo().enter()
+			config.changed_my_mind = 0
+		else:
+			IntroductionScene().start_zombie_combat()
+			IntroductionScene().return_to_kendo_entrance()
+			
+	def return_to_kendo_entrance(self):
+		print '''
+	You are back to where you started this game. There are no items
+	to pick up and no information to read.
+	'''
+		if config.number_of_zombies_intro_room > 0:
+			print '''
+	You will have to dodge and/or fight the zombies again to leave 
+	this room.
+	'''
+		else:
+			pass
+		print '''
+	You will now turn around and go back to the gun shop.
+	'''
+		IntroductionScene().start_zombie_combat()
+		config.briefly_describe_room = True
+		JoeKendo().enter()
+			
+	def start_zombie_combat(self):
+		config.monster_is_zombie = True
+		config.number_of_monsters = config.number_of_zombies_intro_room
+		config.original_number_of_monsters = (
+		    config.number_of_zombies_intro_room)
+		config.monster_health = 9
+		config.total_monster_health = config.total_health_zombies_intro_room
+		config.shoot_time = 10 + 2*(config.first_time_intro_zombies -  
+		                              config.number_of_zombies_intro_room)
+		config.dodge_time = 10 + 2*(config.first_time_intro_zombies - 
+		                              config.number_of_zombies_intro_room)
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.number_of_zombies_intro_room = config.number_of_monsters
+		config.total_health_zombies_intro_room = config.total_monster_health
+		
+		
+class JoeKendo(object):
+
+
+	def return_room_description(self):
+		print '''
+		
+	ENTERED A NEW ROOM
+	
+	You have entered Joe Kendo's gun shop. He has a bowgun pointed at
+	you but you say "Don't Shoot! I'm a human!" He lowers the gun
+	and says he thought you were one of those zombies. He then 
+	locks the door you came from and says that you'll be safe in
+	here.
+	'''
+		config.kendo_room_layout = '''
+	The room is shaped like an upside down T with a line 
+	through the middle. There are hallways to your left and
+	right. There is a hallway going forward which leads to an exit.
+	Halfway through that hallway, you notice another set of corridors
+	going left and right.
+	'''
+		print config.kendo_room_layout
+		config.briefly_describe_room = False
+		config.exit_zombie_scene_occured = False
+		config.bullets_available_left = True
+		config.bullets_available_right = True
+		config.kendo_start_zombies = True
+		config.picked_up_kendo_bowgun = False
+		config.going_forward = True
+		JoeKendo().enter()
+	
+	def enter(self):
+		if config.briefly_describe_room:
+			print '''
+	You are back in Joe Kendo's gun shop.
+	'''
+			config.going_forward = True
+		else:
+			pass
+		AllMessages().check_all()
+		GoBack().go_back()
+		if config.return_old_room == '1':
+			IntroductionScene().go_back_to_intro()
+		else:
+			JoeKendo().check_if_zombie_scene_occured()
+			
+	def check_if_zombie_scene_occured(self):
+		config.explore = 0
+		config.going_forward = True
+		if  not config.exit_zombie_scene_occured:
+			JoeKendo().determine_whether_explore_room()
+		else:
+			JoeKendo().prompt_left_right_forward()
+			
+	def determine_whether_explore_room(self):
+		ExploreRoom().explore_room()
+		if config.explore == '1':
+			JoeKendo().choose_explore()
+		else:
+			JoeKendo().choose_no_explore()
+
+	def prompt_left_right_forward(self):
+		print '''
+	Where would you like to go?
+	1. Left
+	2. Right
+	3. Forward
+	'''
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			print '''
+	You chose to go left.
+	'''
+			print config.nothing_there
+			print '''
+	You will go back to where you just came from.
+	'''
+			JoeKendo().prompt_left_right_forward()
+		elif config.choice == '2':
+			print '''
+	You chose to go right.
+	'''
+			print config.nothing_there
+			print '''
+	You will go back to where you just came from.
+	'''
+			JoeKendo().prompt_left_right_forward()
+		else:
+			print '''
+	You chose to go forward.
+	'''
+			JoeKendo().determine_whether_option_to_take_bowgun_occurred()
+				
+	def choose_explore(self):
+		print '''
+	Where would you like to go?
+	1. Left
+	2. Right
+	3. Forward
+	'''
+		config.nothing_there = '''
+	There was nothing there. You will now return to the center of 
+	this hallway.
+	'''
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			print '''
+	You went left.
+	'''
+			print config.nothing_there
+			JoeKendo().choose_explore()
+		elif config.choice == '2':
+			print '''
+	You went right.
+	'''
+			print config.nothing_there
+			JoeKendo().choose_explore()
+		else:
+			JoeKendo().go_forward()
+				
+	def choose_no_explore(self):
+		print '''
+	You have chosen not to explore this room. 
+	What would you like to do?
+	1. Go forward and exit the room (Go to the next room)
+	2. Return to the previous room
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			if not config.exit_zombie_scene_occured:
+				JoeKendo().run_zombie_cutscene()
+			else:
+				JoeKendo().exit()	
+		else:
+			config.explore = 0
+			IntroductionScene().go_back_to_intro()		
+					
+	def go_forward(self):
+		if config.exit_zombie_scene_occured == False:
+			JoeKendo().decide_left_right_exit()
+		else:
+			JoeKendo().determine_whether_option_to_take_bowgun_occurred()
+			
+	def decide_left_right_exit(self):
+		print '''
+	You chose to go forward. There is a door to exit the room. 
+	There are also rows of guns and bullets to your left and right.
+	What will you do?
+	1. Exit the room
+	2. Go Left
+	3. Go Right
+	'''
+		MultipleChoices().three_choices()
+		if config.choice == '2':
+			JoeKendo().decide_left_bullets()	
+		elif config.choice == '3':
+			JoeKendo().decide_right_bullets()
+		else:
+			if config.exit_zombie_scene_occured == False:
+				JoeKendo().run_zombie_cutscene()
+			else:
+				JoeKendo().start_zombie_combat()
+			
+	def decide_left_bullets(self):
+		if config.bullets_available_left == True:
+			Bullets().pick_up_bullets()
+			if config.picked_up_bullets == True:
+				config.bullets_available_left = False
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here.
+	'''
+		JoeKendo().prompt_to_leave_or_explore_right()
+	
+	def prompt_to_leave_or_explore_right(self):
+		print '''
+	Where do you want to go now?
+	1. Explore the other side of the room
+	2. Exit (go to the next room)
+	3. Exit (go to the previous room)
+	''' 
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			JoeKendo().decide_right_bullets()
+		elif config.choice == '2':
+			if config.exit_zombie_scene_occured == True:
+				config.going_forward = True
+				JoeKendo().start_zombie_combat()
+			else:
+				JoeKendo().run_zombie_cutscene()
+		else:
+			IntroductionScene().go_back_to_intro()
+	
+	def prompt_to_leave_or_explore_left(self):
+		print '''
+	Where do you want to go now?
+	1. Explore the other side of the room
+	2. Exit (go to the next room)
+	3. Exit (go back to the intro room)
+	''' 
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			JoeKendo().decide_left_bullets()
+		elif config.choice == '2':
+			if config.exit_zombie_scene_occured == True:
+				config.going_forward = True
+				JoeKendo().start_zombie_combat()
+			else:
+				JoeKendo().run_zombie_cutscene()
+		else:
+			IntroductionScene().go_back_to_intro()
+
+	def decide_right_bullets(self):
+		if config.bullets_available_right == True:
+			Bullets().pick_up_bullets()
+			if config.picked_up_bullets == True:
+				config.bullets_available_right = False
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here.
+	'''
+		JoeKendo().prompt_to_leave_or_explore_left()
+	
+	def run_zombie_cutscene(self):
+		if not config.exit_zombie_scene_occured:
+			print '''
+	As soon as you turn the door knob, you hear a crash. Five
+	zombies enter the room through the window. They eat Joe
+	Kendo and he drops his bow gun. They see you and begin 
+	walking towards you. The bowgun is yours for the taking,
+	but you will have to be very fast if you want to kill and/or
+	dodge the zombies without taking a bite.
+	'''
+			config.exit_zombie_scene_occured = True
+		else:
+			pass
+		config.going_forward = False
+		JoeKendo().prompt_pick_up_bowgun_and_start_combat()
+	
+	def prompt_pick_up_bowgun_and_start_combat(self):
+		if not config.picked_up_kendo_bowgun:
+			print '''
+	Do you want to go back for the bow gun?
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				config.going_forward = False
+				JoeKendo().start_zombie_combat()
+			else:
+				JoeKendo().exit()
+		else:
+			JoeKendo().start_zombie_combat()
+		
+	def start_zombie_combat(self):
+		config.monster_is_zombie = True
+		if config.kendo_start_zombies:
+			config.kendo_number_of_zombies = 5
+			config.total_health_zombies_kendo = 45
+			config.kendo_start_zombies = False
+		else:
+			pass
+		config.number_of_monsters = config.kendo_number_of_zombies
+		config.original_number_of_monsters = config.kendo_number_of_zombies
+		config.first_time_kendo_zombies = 5
+		config.monster_health = 9
+		config.total_monster_health = config.total_health_zombies_kendo
+		config.dodge_time = 5 + 2 * (config.first_time_kendo_zombies - 
+		                             config.kendo_number_of_zombies)
+		config.shoot_time = 5 + 2 * (config.first_time_kendo_zombies - 
+		                             config.kendo_number_of_zombies)
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.kendo_number_of_zombies = config.number_of_monsters
+		config.total_health_zombies_kendo = config.total_monster_health
+		if config.going_forward:
+			JoeKendo().exit()
+		else:
+			JoeKendo().determine_whether_option_to_take_bowgun_occurred()
+			
+	def determine_whether_option_to_take_bowgun_occurred(self):
+		if config.option_to_pick_up_bowgun_occurred:
+			print '''
+	You see Joe Kendo's body on the floor.
+	'''
+			if not config.picked_up_kendo_bowgun:
+				print '''
+	The bowgun is still here.
+	'''
+			else:
+				pass
+		else:
+			pass
+		JoeKendo().pick_up_bowgun()
+		
+	def pick_up_bowgun(self):	
+		if not config.picked_up_kendo_bowgun:
+			print '''
+	Will you take the bowgun?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				print '''
+	The bowgun will now be added to your item cache. 
+	The bowgun was equipped with 36 bowgun bolts.
+	'''
+				config.item_cache.append('bowgun')
+				config.picked_up_kendo_bowgun = True
+				config.bowgun_bolts = 36
+			else:
+				pass
+		else:
+			print '''
+	There is nothing of interest here anymore.
+	'''
+		config.option_to_pick_up_bowgun_occurred = True
+		JoeKendo().determine_backwards_or_forwards_after_bowgun()
+		
+	def determine_backwards_or_forwards_after_bowgun(self):
+		if config.going_forward:
+			JoeKendo().prompt_left_right_alley_mainstreet_forward()
+		else:
+			JoeKendo().prompt_left_right_alley_mainstreet_backward()
+			
+	def prompt_left_right_alley_mainstreet_forward(self): 
+		print config.left_right_exit_main_forward
+		MultipleChoices().four_choices()
+		if config.choice == '1':
+			config.going_forward = True
+			JoeKendo().start_zombie_combat()
+		elif config.choice == '2':
+			IntroductionScene().go_back_to_intro()
+		elif config.choice == '3':
+			JoeKendo().decide_left_bullets()
+		else:
+			JoeKendo().decide_right_bullets()	
+			
+	def prompt_left_right_alley_mainstreet_backward(self):
+		print config.left_right_exit_main_backward
+		MultipleChoices().four_choices()
+		if config.choice == '1':
+			config.going_forward = True
+			JoeKendo().start_zombie_combat()
+		elif config.choice == '2':
+			IntroductionScene().go_back_to_intro()
+		elif config.choice == '3':
+			JoeKendo().decide_right_bullets()
+		else:
+			JoeKendo().decide_left_bullets()	
+			
+	def exit(self):
+		config.going_forward = False
+		config.counter_alley = config.counter_alley + 1
+		if config.counter_alley < 2:
+			Alley().room_description()
+		else:
+			Alley().enter()
+			
+	def go_back_kendo(self):
+		AllMessages().check_all()
+		print '''
+	You are back in Joe Kendo's gun shop.
+	'''
+		print '''
+	What will you do?
+	
+	1. Go towards the main street. (You will have to fight any
+	zombies still left in this room.)
+	
+	2. Go to Alley
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			config.going_forward = False
+			JoeKendo().start_zombie_combat()
+		else:
+			JoeKendo().exit()
+		
+		
+class Alley(object):
+
+
+	def room_description(self):
+		print '''	
+		
+	ENTERED A NEW ROOM
+	
+	You are in the alley behind Joe Kendo's gun shop. To
+	the left, you see a parked truck. To the right, you hear
+	sounds of zombies moaning.
+	'''
+		config.alley_picked_up_handgun_bullets = False
+		config.alley_number_of_zombies = 4
+		config.alley_start_zombies = True
+		Alley().enter()
+		
+	def enter(self):
+		config.going_forward_alley = True
+		if config.counter_alley < 2:
+			pass
+		else:
+			print '''
+	You are back in the alley behind Joe Kendo's gun shop.
+	'''
+		AllMessages().check_all()
+		GoBack().go_back()
+		if config.return_old_room == '1':
+			JoeKendo().go_back_kendo()
+		else:
+			Alley().left_or_right()
+		
+	def left_or_right(self):
+		print '''
+	Do you want to go left or right?
+	1. Left
+	2. Right
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Alley().left_truck()
+		else:
+			Alley().right_zombies()
+			
+	def left_truck(self):
+		if not config.alley_picked_up_handgun_bullets:
+			print '''
+	You investigate the truck. The truck does not work.
+	''' 
+			Bullets().pick_up_bullets()
+			if config.picked_up_bullets:
+				config.alley_picked_up_handgun_bullets = True
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here.
+	'''
+		print '''
+	You will now return to the center of the room.
+	'''
+		Alley().left_or_right()
+			
+	def right_zombies(self):
+		if config.alley_number_of_zombies > 0:
+			print '''
+	You see 4 zombies in your path. The zombies are all in a line.
+	Thus, they will be hard to dodge, but easier to shoot.
+	'''
+		else:
+			pass
+		Alley().zombie_stats()
+		
+	def zombie_stats(self):
+		config.monster_is_zombie = True
+		if config.alley_start_zombies:
+			config.alley_number_of_zombies = 4
+			config.total_health_zombies_alley = 36
+			config.alley_start_zombies = False
+		else:
+			pass
+		config.number_of_monsters = config.alley_number_of_zombies
+		config.original_number_of_monsters = config.alley_number_of_zombies
+		config.first_time_alley_zombies = 4
+		config.monster_health = 9
+		config.total_monster_health = config.total_health_zombies_alley
+		config.dodge_time = 8 + 2 * (config.first_time_alley_zombies - 
+		                             config.alley_number_of_zombies)
+		config.shoot_time = 13 + 2 * (config.first_time_alley_zombies - 
+		                             config.alley_number_of_zombies)
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.alley_number_of_zombies = config.number_of_monsters
+		config.total_health_zombies_alley = config.total_monster_health
+		if config.going_forward_alley:
+			Alley().exit()
+		else:
+			Alley().left_or_previous_room()
+		
+	def exit(self):
+		config.counter_front = config.counter_front + 1
+		if config.counter_front < 2:
+			Front().room_description()
+		else:
+			Front().enter()
+			
+	def go_back_alley(self):
+		AllMessages().check_all()
+		config.going_forward_alley = False
+		if config.alley_number_of_zombies > 0:
+			print '''
+	You must fight the zombies remaining in this room.
+	'''
+		else:
+			pass
+		Alley().zombie_stats()
+		
+	def left_or_previous_room(self):
+		config.going_forward_alley = True
+		print '''
+	You are back at the center of this room (right outside Joe
+	Kendo's gun shop.) Do you want to go left (towards the truck),
+	back to where you just were, or to the previous room (Joe Kendo's
+	gun shop?)
+		1. Left (towards the truck)
+		2. Right (where you just came from)
+		3. Back to Joe Kendo's gun shop
+	'''
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			Alley().left_truck()
+		elif config.choice == '2':
+			Alley().right_zombies()
+		else:
+			JoeKendo().go_back_kendo()
+		
+		
+class Front(object):
+
+
+	def room_description(self):
+		config.front_handgun_bullets_available = True
+		config.front_green_herb_available = True
+		config.front_number_of_zombies = 4
+		config.front_start_zombies = True
+		print '''
+		
+	ENTERED A NEW ROOM
+	
+	You are in front of the police station. You see a pathway
+	to your right and going forward. There are 5 zombies in the
+	path going forward.
+	'''
+		Front().enter()
+		
+	def enter(self):
+		config.going_forward_front = True
+		if config.counter_front < 2:
+			pass
+		else:
+			print '''
+	You are back in the entrance path to the police station.
+	'''
+		AllMessages().check_all()
+		GoBack().go_back()
+		if config.return_old_room == '1':
+			Alley().go_back_alley()
+		else:
+			Front().prompt_right_or_forward()
+			
+	def prompt_right_or_forward(self):
+		config.going_forward_front = True
+		print '''
+	Will you go to the right or go forward?
+	1. Right
+	2. Forward
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Front().right_bullets()
+		else:
+			Front().forward_zombies()
+			
+	def right_bullets(self):
+		if config.front_handgun_bullets_available:
+			Bullets().pick_up_bullets()
+			if config.picked_up_bullets:
+				config.front_handgun_bullets_available = False
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here.
+	'''
+		print '''
+	You will now go back to the entrance to this room.
+	'''
+		Front().prompt_right_or_forward()
+		
+	def forward_zombies(self):
+		config.monster_is_zombie = True
+		if config.front_start_zombies:
+			config.front_number_of_zombies = 5
+			config.total_health_zombies_front = 45
+			config.front_start_zombies = False
+		else:
+			pass
+		config.number_of_monsters = config.front_number_of_zombies
+		config.original_number_of_monsters = config.front_number_of_zombies
+		config.first_time_front_zombies = 5
+		config.monster_health = 9
+		config.total_monster_health = config.total_health_zombies_front
+		config.dodge_time = 7 + 2 * (config.first_time_front_zombies - 
+		                             config.front_number_of_zombies)
+		config.shoot_time = 7 + 2 * (config.first_time_front_zombies - 
+		                             config.front_number_of_zombies)
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.front_number_of_zombies = config.number_of_monsters
+		config.total_health_zombies_front = config.total_monster_health
+		if config.going_forward_front:
+			Front().left_or_exit()
+		else:
+			Front().right_or_previous_room()
+			
+	def left_or_exit(self):
+		print '''
+	You see the entrance to the police station in front of you. 
+	You see a small garden to your left. What will you do?
+	1. Go forward
+	2. Go left
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Front().exit()
+		else:
+			Front().left_herb()
+			
+	def left_herb(self):
+		if config.front_green_herb_available:
+			print '''
+	In the garden, you see a green herb. Green herbs can be used
+	for healing. Will you take the green herb?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				print '''
+	The green herb has been added to your item cache.
+	'''
+				config.item_cache.append('green herb')
+				config.front_green_herb_available = False
+				UseItem().use_item()
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here anymore.
+	'''
+		print '''
+	You will leave the garden now.
+	'''
+		Front().left_or_exit()
+			
+	def exit(self):
+		config.counter_station = config.counter_station + 1
+		if config.counter_station < 2:
+			Station().room_description()
+		else:
+			Station().enter()
+		
+	def right_or_previous_room(self):
+		config.going_forward_front = True
+		print '''
+	You are now at the door between the alley behind Joe Kendo's gun
+	shop and the pathway to the police station. You can go left (was
+	right when you entered this room), back to the alley, or forward 
+	to the station. What will you do?
+	
+	1. Go left (was right)
+	
+	2. Go back to the alley
+	
+	3. Go forward to the police station 
+	(A.K.A where you just came from)
+	'''
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			Front().right_bullets()
+		elif config.choice == '2':
+			Alley().go_back_alley()
+		else:
+			Front().forward_zombies()
+		
+	def go_back_front(self):
+		AllMessages().check_all()
+		config.going_forward_front = False
+		print '''
+	You are back outside the police station. There is a garden
+	to your right (was your left on the way in.) There is a 
+	path going back to the alley. What will you do?
+	
+	1. Go to the garden
+	
+	2. Go back towards the alley (You will have to fight
+	   any remaining enemies.)
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Front().left_herb()
+		else:
+			Front().forward_zombies()
+		
+		
+class Station(object):
+
+
+	def room_description(self):
+		config.handgun_bullets_available_station_1 = True
+		config.handgun_bullets_available_station_2 = True
+		config.red_herb_available_station = True
+		config.green_herb_available_station = True
+		config.spade_key_available = False
+		config.first_time_unicorn = False
+		print '''
+		
+	ENTERED A NEW ROOM
+	
+	You are in the police station main hall. You see
+	a statue in front of you that says "I await the
+	unicorn. The beautiful beast."
+	
+	By the statue, you see a desk that looks like it has
+	something on it.
+	
+	You see a door to your left and green and red herbs 
+	to your right. You see another door past the statue.
+	'''
+		Station().enter()
+		
+	def enter(self):
+		if config.counter_station > 1:
+			print '''
+	You are back in the police station lobby.
+	'''
+		else:
+			pass
+		config.going_forward_station = True
+		AllMessages().check_all()
+		GoBack().go_back()
+		if config.return_old_room == '1':
+			Front().go_back_front()
+		else:
+			Station().six_choices()
+			
+	def six_choices(self):
+		print '''
+	What will you do?
+	1. Go right
+	2. Go left
+	3. Investigate the statue
+	4. Go to the door behind the statue
+	5. Investigate the police desk
+	6.Go back outside
+	'''
+		MultipleChoices().six_choices()
+		if config.choice == '1':
+			Station().right_herbs()
+		elif config.choice == '2':
+			Station().left_room()
+		elif config.choice == '3':
+			Station().investigate_statue()
+		elif config.choice == '4':
+			Station().door_behind_statue()
+		elif config.choice == '5':
+			Station().police_desk()
+		else:
+			print '''
+	You have chosen to go back outside. You will leave this
+	room now.
+	'''
+			Front().go_back_front()
+			
+	def right_herbs(self):
+		if config.red_herb_available_station:
+			print '''
+	There is a red herb here. Will you take it?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				print '''
+	The red herb will now be added to your item cache.
+	'''
+				config.item_cache.append('red herb')
+				config.red_herb_available_station = False
+				UseItem().use_item()
+			else:
+				pass
+		Station().green_herb_right()
+		
+	def green_herb_right(self):
+		if config.green_herb_available_station:
+			print '''
+	There is a green herb here. Will you take it?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				print '''
+	The green herb will now be added to your item cache.
+	'''
+				config.item_cache.append('green herb')
+				config.green_herb_available_station = False
+				UseItem().use_item()
+			else:
+				pass
+		else:
+			pass
+		if (not config.green_herb_available_station and 
+		   not config.red_herb_available_station):
+			print '''
+	There is nothing here anymore.
+	'''
+		print '''
+	You will now go back to the entrance to the police station
+	lobby.
+	'''
+		Station().six_choices()
+		
+	def left_room(self):
+		print '''
+	There is a door here. Will you exit this room?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Station().exit()
+		else:
+			print '''
+	There is nothing else here. You will now go back to the police
+	station lobby.
+	'''
+			Station().six_choices()
+			
+	def investigate_statue(self):
+		config.can_use_unicorn = True
+		if not config.used_unicorn:
+			print '''
+	You investigate the statue closely. There is a plaque which
+	reads "I await the unicorn. The beautiful beast." Underneath
+	the plaque, you see a hole in the shape of a medallion.
+	'''
+			UseItem().use_item()
+		else:
+			pass
+		if config.used_unicorn:
+			Station().investigate_statue_successful()
+		else:
+			config.can_use_unicorn = False
+			Station().investigate_statue_part_2()
+			
+	def investigate_statue_successful(self):
+		if 'unicorn medal' in config.item_cache:
+			config.item_cache.remove('unicorn medal')
+		else:
+			pass
+		if config.first_time_unicorn:
+			print '''
+	You place the unicorn medal in the hole in the shape of a 
+	medallion. The statue slides back to reveal a spade key.
+	'''
+			config.first_time_unicorn = False
+			config.spade_key_available = True
+		else:
+			if (config.spade_key_available and 
+			   not config.first_time_unicorn):
+				print '''
+	The spade key is still here.
+	'''
+			else:
+				pass
+		Station().prompt_take_spade_key()
+		
+	def prompt_take_spade_key(self):
+		if config.spade_key_available:
+			print '''
+	Will you take the spade key?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				config.item_cache.append('spade key')
+				print '''
+	Here is your item cache.
+	'''
+				print config.item_cache
+				config.spade_key_available = False
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here anymore.
+	'''
+		print '''
+	You will now go back to the center of the room.
+	'''
+		Station().six_choices()
+		
+	def investigate_statue_part_2(self):
+		print '''
+	Nothing happens. Do you want to keep investigating the 
+	statue?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Station().investigate_statue()
+		else:
+			print config.police_station_prompt
+			Station().six_choices()
+			
+	def door_behind_statue(self):
+		config.can_use_spade_key = True
+		print '''
+	You investigate the door behind the statue. The door is
+	locked. There is a spade etched under the key hole.
+	'''
+		UseItem().use_item()
+		if config.used_spade_key:
+			Station().spade_key_successful()
+		else:
+			config.can_use_spade_key = False
+			Station().spade_key_unsuccessful()
+			
+	def spade_key_successful(self):
+		print '''
+	There is an elevator here. You take the elevator to the
+	lowest floor, which leads to the sewers. You travel through
+	the sewers and escape Raccoon City. 
+	
+	Congrats! You have survived this game. Well done!
+	'''
+		exit(0)
+			
+	def spade_key_unsuccessful(self):
+		print '''
+	Nothing happens. Do you want to keep investigating this 
+	door?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Station().door_behind_statue()
+		else:
+			print config.police_station_prompt
+			Station().six_choices()	
+
+	def police_desk(self):
+		print '''
+	You investigate the police desk near the statue. You 
+	see an old typewriter and a computer. You have no use
+	for either of these.
+	'''
+		if config.handgun_bullets_available_station_1:
+			print '''
+	There is something else here.
+	'''
+			Bullets().pick_up_bullets()
+			if config.picked_up_bullets:
+				config.handgun_bullets_available_station_1 = False
+			else:
+				pass
+		else:
+			pass
+		Station().police_desk_part_2()
+		
+	def police_desk_part_2(self):
+		if config.handgun_bullets_available_station_2:
+			print '''
+	There is still something else here.
+	'''
+			Bullets().pick_up_bullets()
+			if config.picked_up_bullets:
+				config.handgun_bullets_available_station_2 = False
+			else:
+				pass
+		elif (not config.handgun_bullets_available_station_1 and 
+			    not config.handgun_bullets_available_station_2):
+			print '''
+	There is nothing here anymore.
+	'''
+		print config.police_station_prompt
+		Station().six_choices()
+		
+	def exit(self):
+		config.counter_corridor_1 = config.counter_corridor_1 + 1
+		if config.counter_corridor_1 < 2:
+			Corridor().room_description()
+		else:
+			Corridor().enter()
+			
+	def go_back(self):
+		AllMessages().check_all()
+		print '''
+	You are back in the police station main lobby.
+	
+	You will now return to the lobby entrance.
+	'''
+		Station().six_choices()
+
+		
+class Corridor(object):
+
+
+	def room_description(self):
+		config.corridor_start_monsters = True
+		config.corridor_green_herb_available = True
+		config.corridor_number_of_monsters = 1
+		print '''
+		
+	ENTERED A NEW ROOM.
+	
+	You are in the corridor. You see an item box in front of you.
+	An item box can be used to drop items from your item cache. You
+	can also retrive items from your item box that you have previously
+	dropped in your item cache. Note that you can only use items in
+	your item cache.
+	
+	In the distance you see a menancing monster, worse than a zombie.
+	The monster has not noticed you yet. Past that, you see what looks 
+	like a useful item and another door.
+	'''
+		Corridor().enter()
+		
+	def enter(self):
+		if config.counter_corridor_1 > 1:
+			print '''
+	You are back in the police station corridor.
+	'''
+		else:
+			pass
+		config.going_forward_corridor = True
+		AllMessages().check_all()
+		GoBack().go_back()
+		if config.return_old_room == '1':
+			Station().go_back()
+		else:
+			Corridor().item_box_stuff()
+			
+	def item_box_stuff(self):
+		config.going_forward_corridor = True
+		print '''
+	There is an item box here.
+	'''
+		ItemBox().item_box()
+		print '''
+	Would you like to go back to the police station lobby?
+	1. Yes
+	2. No
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Station().go_back()
+		else:
+			Corridor().licker()
+				
+	def licker(self):
+		if config.corridor_number_of_monsters == 1:
+			print '''
+	You see a licker in the corridor. You must fight or dodge it
+	to go forward. The licker will be very strong and very fast.
+	'''
+		else:
+			pass
+		Corridor().monster_stats()
+		
+	def monster_stats(self):
+		config.monster_is_zombie = False
+		if config.corridor_start_monsters:
+			config.corridor_number_of_monsters = 1
+			config.total_health_monsters_corridor = 27
+			config.corridor_start_monsters = False
+		else:
+			pass
+		config.number_of_monsters = config.corridor_number_of_monsters
+		config.original_number_of_monsters = (
+		    config.corridor_number_of_monsters
+			)
+		config.total_monster_health = config.total_health_monsters_corridor
+		config.dodge_time = 4 
+		config.shoot_time = 5 
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.corridor_number_of_monsters = config.number_of_monsters
+		config.total_health_monsters_corridor = config.total_monster_health
+		if config.corridor_number_of_monsters == 1:
+			UseItem().use_item()
+		else:
+			pass
+		if config.going_forward_corridor:
+			Corridor().green_herb_corridor()
+		else:
+			Corridor().item_box_stuff()
+
+	def green_herb_corridor(self):
+		if config.corridor_green_herb_available:
+			print '''
+	There is a green herb here. Will you take it?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				print '''
+	The green herb will now be added to your item cache.
+	'''
+				config.item_cache.append('green herb')
+				config.corridor_green_herb_available = False
+				UseItem().use_item()
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here anymore.
+	'''
+		Corridor().determine_going_forward_and_monster()
+		
+	def determine_going_forward_and_monster(self):
+		if (config.going_forward_corridor and 
+		   config.corridor_number_of_monsters == 1):
+			print '''
+	It is too dangerous to stay in this room with the licker. 
+	You will now go to the mailroom.
+	'''
+			Corridor().exit()
+		else:
+			config.going_forward_corridor = False
+			Corridor().decision_to_leave()
+			
+	def decision_to_leave(self):
+		print '''
+	Do you want to go back towards the station lobby or forward
+	to the mail room?
+	1. Station Lobby
+	2. Mail room
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			Corridor().monster_stats()
+		else:
+			Corridor().exit()
+			
+	def exit(self):
+		config.counter_mailroom = config.counter_mailroom + 1
+		if config.counter_mailroom < 2:
+			MailRoom().room_description()
+		else:
+			MailRoom().enter()
+			
+	def go_back(self):
+		AllMessages().check_all()
+		print '''
+	You are back in the police station corridor.
+	'''
+		config.going_forward_corridor = False
+		Corridor().green_herb_corridor()
+
+		
+class MailRoom(object):
+	
+	
+	def room_description(self):
+		config.bowgun_available = True
+		config.mailroom_start_zombies = True
+		print '''
+		
+	ENTERED A NEW ROOM
+	
+	You are in the mail room. You see lots of lockers by a sorting
+	machine and zombies up ahead. There are more lockers past the 
+	zombies.
+	'''
+		MailRoom().enter()
+		
+	def enter(self):
+		if config.counter_mailroom > 1:
+			print '''
+	You are back in the mail room.
+	'''
+		else:
+			pass
+		config.going_forward_mailroom = True
+		AllMessages().check_all()
+		GoBack().go_back()
+		if config.return_old_room == '1':
+			Corridor().go_back()
+		else:
+			MailRoom().first_decision()
+			
+	def first_decision(self):
+		config.going_forward_mailroom = True
+		print '''
+	Will you investigate the lockers by the sorting machine
+	or go down the hallway?
+	1. Investigate the lockers by the sorting machine
+	2. Go down the hallway
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			MailRoom().sorting_machine()
+		else:
+			MailRoom().zombie_stats()
+			
+	def sorting_machine(self):
+		config.going_forward_mailroom = True
+		print '''
+	There are five lockers here. Which will you investigate?
+	1. Locker 1
+	2. Locker 2
+	3. Locker 3
+	4. Locker 4
+	5. Locker 5
+	'''
+		MultipleChoices().five_choices()
+		if (config.choice == '1' or config.choice == '3' or 
+		   config.choice == '5'):
+		   MailRoom().locked_lockers()
+		elif config.choice == '2':
+			MailRoom().password()
+		else:
+			MailRoom().unlocked_locker()
+			
+	def locked_lockers(self):
+		if config.choice == '1':
+			config.locker = '1'
+		elif config.choice == '3':
+			config.locker = '3'
+		else:
+			config.locker = '5'
+		print '''
+	You chose locker %s.
+	''' % config.locker
+		print '''
+	The locker is locked. You cannot open it.
+	'''
+		MailRoom().locker_decisions()
+		
+	def locker_decisions(self):
+		print '''
+	What will you do now?
+	1. Investigate more lockers
+	2. Go down the hallway
+	3. Go back to the police station corridor
+	'''
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			MailRoom().sorting_machine()
+		elif config.choice == '2':
+			MailRoom().zombie_stats()
+		else:
+			Corridor().go_back()
+			
+	def zombie_stats(self):
+		config.monster_is_zombie = True
+		if config.mailroom_start_zombies:
+			config.mailroom_number_of_zombies = 3
+			config.mailroom_total_health_zombies = 27
+			config.mailroom_start_zombies = False
+		else:
+			pass
+		config.number_of_monsters = config.mailroom_number_of_zombies
+		config.original_number_of_monsters = config.mailroom_number_of_zombies
+		config.first_time_mailroom_zombies = 3
+		config.total_monster_health = config.mailroom_total_health_zombies
+		config.dodge_time = 7 + 2 * (config.first_time_mailroom_zombies - 
+		                             config.mailroom_number_of_zombies)
+		config.shoot_time = 13 + 2 * (config.first_time_mailroom_zombies - 
+		                             config.mailroom_number_of_zombies)
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.mailroom_number_of_zombies = config.number_of_monsters
+		config.mailroom_total_health_zombies = config.total_monster_health
+		if config.going_forward_mailroom:
+			MailRoom().lockers_by_STARS_office()
+		else:
+			MailRoom().going_back_station_lockers()
+	
+	def password(self):
+		print '''
+	The locker is open. Inside you see a note. The note says:
+	
+	NOTE TO SELF: REBECCA GAVE ME HER LOCKER COMBINATION IN
+	CASE SHE FORGOT IT. HER COMBINATION IS 1-23-5.
+	'''
+		MailRoom().locker_decisions()
+		
+	def unlocked_locker(self):
+		print '''
+	The locker is open. There is nothing of interest inside.
+	'''
+		MailRoom().locker_decisions()
+		
+	def going_back_station_lockers(self):
+		config.going_forward_mailroom = True
+		print '''
+	Will you investigate the lockers by the sorting room or go back
+	to the corridor between the mailroom and lobby?
+	1. Investigate the lockers by the sorting room
+	2. Go to corridor between mailroom and lobby
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			MailRoom().sorting_machine()
+		else:
+			Corridor().go_back()
+			
+	def lockers_by_STARS_office(self):
+		config.going_forward_mailroom = False
+		print '''
+	You see a door that says STARS Office in front of you. You also
+	see some lockers next to the door. What will you do?
+	1. Enter the STARS Office
+	2. Investigate the lockers by the STARS Office
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			MailRoom().exit()
+		else:
+			MailRoom().investigate_STARS_lockers()
+			
+	def investigate_STARS_lockers(self):
+		print '''
+	There are four lockers here. Which will you investigate?
+	1. Locker 1
+	2. Locker 2
+	3. Locker 3
+	4. Locker 4
+	'''
+		MultipleChoices().four_choices()
+		if config.choice == '1':
+			MailRoom().rebecca_locker()
+		elif config.choice == '2' or config.choice == '4':
+			MailRoom().unlocked_stars_lockers()
+		else:
+			MailRoom().more_locked_lockers()
+			
+	def rebecca_locker(self):
+		print '''
+	You chose to investigate locker 1. The locker says Chambers.
+	'''
+		print '''
+	There is a combination lock here. Enter
+	the first number.
+	'''
+		combo_1 = raw_input('Enter the first number.   ')
+		print '''
+	Enter the second number.
+	'''
+		combo_2 = raw_input('Enter the second number.   ')
+		print '''
+	Enter the third number.
+	'''
+		combo_3 = raw_input('Enter the third number.   ')
+		dash = '-'
+		combo_code = '%s%s%s%s%s' % (combo_1, dash, combo_2, dash, combo_3)
+		if combo_code == '1-23-5':
+			MailRoom().take_the_bowgun()
+		else:
+			print '''
+	You have entered the wrong code. Would you like to try again?
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				MailRoom().rebecca_locker()
+			else:
+				MailRoom().stars_locker_decisions()
+			
+	def take_the_bowgun(self):
+		if config.bowgun_available:
+			print '''
+	There is a bowgun inside. Will you take the bowgun?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				print '''
+	The bowgun has 36 bowgun bolts. The bowgun will now be 
+	added to your item cache.
+	'''
+				config.item_cache.append('bowgun 2')
+				config.bowgun_available = False
+				config.bowgun_bolts_2 = config.bowgun_bolts_2 + 36
+			else:
+				pass
+		else:
+			print '''
+	There is nothing here anymore.
+	'''
+		MailRoom().stars_locker_decisions()
+			
+	def stars_locker_decisions(self):
+		config.going_forward = False
+		print '''
+	What will you do now?
+	1. Investigate more lockers by the STARS Office
+	2. Enter the STARS Office
+	3. Travel towards the corridor between the station lobby
+	and the mailroom (You will have to fight/dodge any remaining
+	zombies)
+	'''
+		MultipleChoices().three_choices()
+		if config.choice == '1':
+			MailRoom().investigate_STARS_lockers()
+		elif config.choice == '2':
+			MailRoom().exit()
+		else:
+			MailRoom().zombie_stats()
+		
+	def unlocked_stars_lockers(self):
+		if config.choice == '2':
+			locker_stuff = '2'
+		else:
+			locker_stuff = '4'
+		print '''
+	You chose to investigate locker %s.
+	''' % locker_stuff
+		print '''
+	There is nothing of interest inside.
+	'''
+		MailRoom().stars_locker_decisions()
+		
+	def more_locked_lockers(self):
+		print '''
+	You chose to investigate locker 3. The locker says Vickers.
+	'''
+		print '''
+	There is a combination lock here. Enter
+	the first number.
+	'''
+		combo_1 = raw_input('Enter the first number.   ')
+		print '''
+	Enter the second number.
+	'''
+		combo_2 = raw_input('Enter the second number.   ')
+		print '''
+	Enter the third number.
+	'''
+		combo_3 = raw_input('Enter the third number.   ')
+		dash = '-'
+		combo_code = '%s%s%s%s%s' % (combo_1, dash, combo_2, dash, combo_3)
+		if combo_code == '8-17-12':
+			print '''
+	The locker opens. There is nothing of interst inside.
+	'''
+			MailRoom().stars_locker_decisions()
+		else:
+			print '''
+	You have entered the wrong code. Would you like to try again?
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				MailRoom().more_locked_lockers()
+			else:
+				MailRoom().stars_locker_decisions()
+			
+	def exit(self):
+		config.counter_STARS_office = config.counter_STARS_office + 1
+		if config.counter_STARS_office < 2:
+			STARS().room_description()
+		else:
+			STARS().enter()
+			
+	def go_back(self):
+		config.going_forward = False
+		print '''
+	You are back in the mail room.
+	'''
+		AllMessages().check_all()
+		print '''
+	What will you do?
+	1. Investigate lockers by STARS Office
+	2. Go down the hallawy torwards the corridor
+	between the lobby and the mailroom
+	'''
+		MultipleChoices().two_choices()
+		if config.choice == '1':
+			MailRoom().investigate_STARS_lockers()
+		else:
+			MailRoom().zombie_stats()
+	
+	
+class STARS(object):
+	
+	
+	def room_description(self):
+		config.unicorn_medal_available = True
+		config.stars_start_zombies = True
+		print '''
+		
+	ENTERED A NEW ROOM.
+	
+	You have entered the STARS Office. You see two lickers
+	in front of you and a shiny object in the back of the room.
+	'''
+		STARS().enter()
+	
+	def enter(self):
+		config.going_forward_stars = True
+		if config.counter_STARS_office > 1:
+			print '''
+	You are back in the STARS office.
+	'''
+		else:
+			pass
+		AllMessages().check_all()
+		GoBack().go_back()
+		if config.return_old_room == '1':
+			MailRoom().go_back()
+		else:
+			STARS().licker_stats()
+			
+	def licker_stats(self):
+		config.monster_is_zombie = False
+		if config.stars_start_zombies:
+			config.stars_number_of_monsters = 2
+			config.stars_total_health_monsters = 54
+			config.stars_start_zombies = False
+		else:
+			pass
+		config.number_of_monsters = config.stars_number_of_monsters
+		config.original_number_of_monsters = config.stars_number_of_monsters
+		config.first_time_stars_monsters = 2
+		config.total_monster_health = config.stars_total_health_monsters
+		config.dodge_time = 3 + 3 * (config.first_time_stars_monsters - 
+		                             config.stars_number_of_monsters)
+		config.shoot_time = 3 + 2 * (config.first_time_stars_monsters - 
+		                             config.stars_number_of_monsters)
+		zombie_battle = ZombieBattle()
+		zombie_battle.determine_whether_battle_should_occur()
+		config.stars_number_of_monsters = config.number_of_monsters
+		config.stars_total_health_monsters = config.total_monster_health
+		UseItem().use_item()
+		if config.going_forward_stars:
+			STARS().unicorn_medal()
+		else:
+			MailRoom().go_back()
+			
+	def unicorn_medal(self):
+		config.going_forward_stars = False
+		if config.unicorn_medal_available:
+			print '''
+	There is a unicorn medal here. Would you like to take the
+	unicorn medal?
+	1. Yes
+	2. No
+	'''
+			TakeItem().take_item()
+			if config.took_item:
+				print '''
+	The unicorn medeal will now be added to your item cache.
+	'''
+				config.item_cache.append('unicorn medal')
+				print '''
+	Here is your item cache.
+	'''
+				print config.item_cache
+				config.unicorn_medal_available = False	
+			else:
+				pass
+			print '''
+	There is nothing else here.
+	'''
+		else:
+			pass
+		STARS().prompt_whether_go_back_to_mailroom()
+		
+	def prompt_whether_go_back_to_mailroom(self):
+		if config.unicorn_medal_available == True:
+			print '''
+	Would you like to go back to the mail room? (Note that you
+	will have to fight/dodge any lickers still left in this
+	room.)
+	1. Yes
+	2. No
+	'''
+			MultipleChoices().two_choices()
+			if config.choice == '1':
+				STARS().licker_stats()
+			else:
+				STARS().unicorn_medal()
+		else:
+			print '''
+	There is nothing here anymore.
+	There is nothing else of interest in this room.
+	You will now go back to the mail room.
+	'''
+			STARS().licker_stats()
+		
+				
+IntroductionScene().select_character()	
